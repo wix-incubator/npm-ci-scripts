@@ -27,7 +27,7 @@ function shouldPublishPackage(info, version) {
 }
 
 function getTag(info, version) {
-  const isLessThanLatest = () => semver.lt(version, get(info, 'dist-tags.latest'));
+  const isLessThanLatest = () => semver.lt(version, get(info, 'dist-tags.latest', '0.0.0'));
   const isPreRelease = () => semver.prerelease(version) !== null;
 
   if (isLessThanLatest()) {
