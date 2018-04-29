@@ -10,7 +10,8 @@
     "npm-ci": "dist/bin/npm-ci.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "publishConfig": {
     "registry": "http://npm.dev.wixpress.com/"
