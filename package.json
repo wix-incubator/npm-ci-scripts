@@ -21,8 +21,7 @@
     "precommit": "yoshi lint",
     "pretest": "yoshi build",
     "test": "yoshi test",
-    "posttest": "yoshi lint",
-    "release": "yoshi release"
+    "posttest": "yoshi lint"
   },
   "devDependencies": {
     "babel-plugin-transform-runtime": "~6.23.0",
