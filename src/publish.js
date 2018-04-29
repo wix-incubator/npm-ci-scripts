@@ -61,7 +61,7 @@ export function publish(flags = '') {
   console.log(`Starting the release process for ${chalk.bold(name)}\n`);
 
   if (!shouldPublishPackage(info, version)) {
-    console.log(chalk.blue(`${name}@${version} is already exist on registry ${registry}`));
+    console.log(chalk.blue(`${name}@${version} already exists on registry ${registry}`));
     console.log('\nNo publish performed');
   } else {
     execPublish(info, version, flags);
