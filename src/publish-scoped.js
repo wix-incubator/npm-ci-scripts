@@ -68,7 +68,7 @@ export function publishScoped() {
     try {
       updateLockFiles(pkg.name);
 
-      publishToRegistry(pkg, 'http://npm.dev.wixpress.com/');
+      publishToRegistry(pkg, 'http://repo.dev.wixpress.com/artifactory/api/npm/npm-local/');
       publishToRegistry(pkg, 'https://registry.npmjs.org/');
 
       console.log('Granting access to "readonly" group to access', pkg.name);
