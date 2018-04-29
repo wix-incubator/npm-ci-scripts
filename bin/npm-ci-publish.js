@@ -1,6 +1,8 @@
 import {publish} from '../src/publish';
 import {publishScoped} from '../src/publish-scoped';
-import {logBlockOpen, logBlockClose} from '../src/utils';
+import {logBlockOpen, logBlockClose, execCommand} from '../src/utils';
+
+execCommand('npm run release --if-present');
 
 logBlockOpen('npm publish');
 publish();

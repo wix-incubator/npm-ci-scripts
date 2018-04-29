@@ -21,5 +21,4 @@ export function build() {
   }
   execCommand('npm run build --if-present');
   execCommand('npm test');
-  execCommand('npm run release --if-present');
 }
