@@ -23,6 +23,7 @@ function getPackageInfo() {
 
 function shouldPublishPackage(info, version) {
   const remoteVersionsList = info.versions || [];
+  console.log(remoteVersionsList);
   return remoteVersionsList.indexOf(version) === -1;
 }
 

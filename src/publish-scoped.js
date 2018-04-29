@@ -1,11 +1,13 @@
 import {publish} from './publish';
 import {execSync} from 'child_process';
+import {writeFileSync, unlinkSync} from 'fs';
 import {writeJsonFile, readJsonFile, fileExists} from './utils';
 
 function publishToRegistry(pkg, to) {
   pkg.publishConfig.registry = to;
   pkg.publishConfig['@wix:registry'] = to;
   writeJsonFile('package.json', pkg);
+  writeFileSync('.npmrc', `@wix:registry=${to}`);
   console.log('Publishing', pkg.name, 'to', to);
   publish('--ignore-scripts');
 }
@@ -76,10 +78,12 @@ export function publishScoped() {
 
       updateLockFiles(bkp.name);
       writeJsonFile('package.json', bkp);
+      unlinkSync('.npmrc');
     } catch (error) {
       console.log('Failed to publish a scoped package, cause:', error);
       updateLockFiles(bkp.name);
       writeJsonFile('package.json', bkp);
+      unlinkSync('.npmrc');
       process.exit(1);
     }
   } else {
