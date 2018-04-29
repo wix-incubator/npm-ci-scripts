@@ -1,6 +1,6 @@
 {
   "name": "npm-ci-scripts",
-  "version": "1.0.5",
+  "version": "1.0.0",
   "license": "UNLICENSED",
   "author": {
     "name": "Shahar Talmi",
@@ -10,8 +10,7 @@
     "npm-ci": "dist/bin/npm-ci.js"
   },
   "files": [
-    "dist",
-    "README.md"
+    "dist"
   ],
   "publishConfig": {
     "registry": "http://npm.dev.wixpress.com/"
@@ -21,7 +20,8 @@
     "precommit": "yoshi lint",
     "pretest": "yoshi build",
     "test": "yoshi test",
-    "posttest": "yoshi lint"
+    "posttest": "yoshi lint",
+    "release": "yoshi release"
   },
   "devDependencies": {
     "babel-plugin-transform-runtime": "~6.23.0",
