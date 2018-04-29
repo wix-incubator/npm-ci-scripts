@@ -13,7 +13,7 @@ function getPackageInfo(name, registry) {
   try {
     return JSON.parse(execSync(`npm show ${name} --registry=${registry} --json`));
   } catch (error) {
-    if (error.stderr.toString().includes('npm ERR! code E404')) {
+    if (error.stderr.toString().indexOf('npm ERR! code E404') !== -1) {
       console.error(chalk.yellow('\nWarning: package not found. Possibly not published yet'));
       return {};
     }
@@ -23,7 +23,7 @@ function getPackageInfo(name, registry) {
 
 function shouldPublishPackage(info, version) {
   const remoteVersionsList = info.versions || [];
-  return !remoteVersionsList.includes(version);
+  return remoteVersionsList.indexOf(version) === -1;
 }
 
 function getTag(info, version) {
