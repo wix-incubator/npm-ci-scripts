@@ -11,7 +11,11 @@ const OLD_TAG = 'old';
 
 function getPackageInfo(name, registry) {
   try {
-    return JSON.parse(execSync(`npm show ${name} --registry=${registry} --json`));
+    const cmd = `npm show ${name} --registry ${registry} --json`;
+    console.log('running', cmd);
+    const result = execSync(cmd).toString();
+    console.log(result);
+    return JSON.parse(result);
   } catch (error) {
     if (error.stderr.toString().indexOf('npm ERR! code E404') !== -1) {
       console.error(chalk.yellow('\nWarning: package not found. Possibly not published yet'));
