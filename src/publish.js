@@ -9,12 +9,9 @@ const LATEST_TAG = 'latest';
 const NEXT_TAG = 'next';
 const OLD_TAG = 'old';
 
-function getPackageInfo(name, registry) {
+function getPackageInfo() {
   try {
-    const cmd = `npm show ${name} --registry ${registry} --json`;
-    console.log(execSync('cat ~/.npmrc').toString());
-    console.log('running', cmd);
-    const result = execSync(cmd).toString();
+    const result = execSync(`npm show --json`).toString();
     console.log(result);
     return JSON.parse(result);
   } catch (error) {
@@ -61,7 +58,7 @@ export function publish(flags = '') {
   const pkg = readJsonFile('package.json');
   const registry = get(pkg, 'publishConfig.registry', DEFAULT_REGISTRY);
   const {name, version} = pkg;
-  const info = getPackageInfo(name, registry);
+  const info = getPackageInfo();
 
   console.log(`Starting the release process for ${chalk.bold(name)}\n`);
 
