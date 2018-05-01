@@ -6,7 +6,7 @@ execCommand('npm run release --if-present');
 
 const pkg = readJsonFile('package.json');
 if (pkg.private) {
-  console.log('skipping publish (probably no change in tarball)');
+  console.log('Skipping publish (probably no change in tarball)');
 } else {
   logBlockOpen('npm publish');
   publish();
