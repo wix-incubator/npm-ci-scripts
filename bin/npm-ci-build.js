@@ -6,6 +6,8 @@ const pkg = readJsonFile('package.json');
 
 build();
 
-if (get(pkg, 'scripts.customPublish') && process.env.agentType !== 'pullrequest') {
+if (process.env.agentType === 'pullrequest') {
+  execCommand('npm run pr-release --if-present');
+} else if (get(pkg, 'scripts.customPublish')) {
   execCommand('npm run release --if-present');
 }
