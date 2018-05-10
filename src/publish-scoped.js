@@ -71,7 +71,9 @@ export function publishScoped() {
       updateLockFiles(pkg.name);
 
       publishToRegistry(pkg, 'http://npm.dev.wixpress.com/');
-      publishToRegistry(pkg, 'https://registry.npmjs.org/');
+      if (!isScoped(bkp.name)) {
+        publishToRegistry(pkg, 'https://registry.npmjs.org/');
+      }
 
       console.log('Granting access to "readonly" group to access', pkg.name);
       run('npm access grant read-only wix:readonly ' + pkg.name + ' --@wix:registry=https://registry.npmjs.org/');
