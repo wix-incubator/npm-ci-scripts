@@ -20,5 +20,10 @@ export function build() {
     execCommand('npm install --no-package-lock --cache ~/.npm.$(npm --version)', 'npm install', 2);
   }
   execCommand('npm run build --if-present');
+
+  if (process.env.agentType === 'pullrequest') {
+    execCommand('npm run pr-postbuild --if-present');
+  }
+
   execCommand('npm test');
 }
