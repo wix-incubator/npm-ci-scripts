@@ -5,7 +5,27 @@ function npmVersion() {
   return parseFloat(execSync('npm --version | cut -d. -f1,2').toString());
 }
 
+function setApplitoolsId() {
+  let batchId = '';
+
+  try {
+    const headHash = execSync('git rev-parse --verify HEAD');
+    const parentHashes = execSync(`git rev-list --parents -n 1 ${headHash.toString()}`);
+    const hashes = parentHashes.toString().split(' ');
+    const hasTwoParents = hashes.length === 3;
+    const hashIndex = hasTwoParents ? 2 : 0;
+
+    batchId = hashes[hashIndex].trim();
+  } catch (e) {
+    batchId = process.env.BUILD_VCS_NUMBER;
+  }
+
+  process.env.APPLITOOLS_BATCH_ID = batchId;
+}
+
 export function build() {
+  setApplitoolsId();
+
   if (fileExists('yarn.lock')) {
     execCommand('yarn install --frozen-lockfile', 'yarn install', 2);
   } else if (fileExists('.yarnrc')) {
