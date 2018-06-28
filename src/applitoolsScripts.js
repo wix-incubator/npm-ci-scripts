@@ -20,12 +20,12 @@ function getPRHeadHash() {
 }
 
 export function setApplitoolsId() {
-  let batchId = process.env.BUILD_VCS_NUMBER;
+  let batchId;
 
   try {
     batchId = getPRHeadHash();
   } catch (e) {
-      //TODO: what should I do here?
+      batchId = process.env.BUILD_VCS_NUMBER;
   }
 
   process.env.APPLITOOLS_BATCH_ID = batchId;

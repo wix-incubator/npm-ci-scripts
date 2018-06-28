@@ -7,7 +7,9 @@ function npmVersion() {
 }
 
 export function build() {
-  setApplitoolsId();
+  if (process.env.APPLITOOLS_GITHUB_FT) {
+    setApplitoolsId();
+  }
 
   if (fileExists('yarn.lock')) {
     execCommand('yarn install --frozen-lockfile', 'yarn install', 2);
