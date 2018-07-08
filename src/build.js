@@ -1,11 +1,16 @@
 import {execSync} from 'child_process';
 import {fileExists, execCommand} from './utils';
+import { setApplitoolsId } from './applitoolsScripts';
 
 function npmVersion() {
   return parseFloat(execSync('npm --version | cut -d. -f1,2').toString());
 }
 
 export function build() {
+  if (process.env.APPLITOOLS_GITHUB_FT) {
+    setApplitoolsId();
+  }
+
   if (fileExists('yarn.lock')) {
     execCommand('yarn install --frozen-lockfile', 'yarn install', 2);
   } else if (fileExists('.yarnrc')) {
