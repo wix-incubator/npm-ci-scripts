@@ -25,7 +25,7 @@ export function setApplitoolsId() {
   try {
     batchId = getPRHeadHash();
   } catch (e) {
-      batchId = process.env.BUILD_VCS_NUMBER;
+    batchId = process.env.BUILD_VCS_NUMBER;
   }
 
   process.env.APPLITOOLS_BATCH_ID = batchId;
