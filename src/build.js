@@ -7,6 +7,8 @@ function npmVersion() {
 }
 
 export function build() {
+  console.log('--- process.env.APPLITOOLS_GITHUB_FT ---');
+  console.log(process.env.APPLITOOLS_GITHUB_FT);
   if (process.env.APPLITOOLS_GITHUB_FT) {
     setApplitoolsId();
   }
