@@ -14,8 +14,8 @@ function getParentsHashArray() {
 
 function getPRHeadHash() {
   const parentsHashArr = getParentsHashArray();
-  console.log('-- parentsHashArr --')
-  console.log(parentsHashArr)
+  console.log('-- parentsHashArr --');
+  console.log(parentsHashArr);
   const isPullRequest = parentsHashArr.length === 3;
   const parentHashIndex = isPullRequest ? PULL_REQUEST_PARENT_HASH_INDEX : HEAD_HASH_INDEX;
   return parentsHashArr[parentHashIndex].trim();
