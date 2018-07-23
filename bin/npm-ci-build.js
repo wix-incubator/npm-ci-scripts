@@ -1,13 +1,17 @@
-import {execCommand, readJsonFile} from '../src/utils';
 import {build} from '../src/build';
-import {get} from 'lodash';
+import {release} from '../src/release';
 
-const pkg = readJsonFile('package.json');
+const program = require('commander');
 
-build();
+program.version(require('../../package').version)
+  .usage('[build-type]')
+  .parse(process.argv);
 
-if (process.env.agentType === 'pullrequest') {
-  execCommand('npm run pr-release --if-present');
-} else if (get(pkg, 'scripts.customPublish')) {
-  execCommand('npm run release --if-present');
+const buildType = program.args[0];
+
+if (buildType) {
+  build(buildType);
+} else {
+  build('test');
+  release();
 }

@@ -6,7 +6,7 @@ function npmVersion() {
   return parseFloat(execSync('npm --version | cut -d. -f1,2').toString());
 }
 
-export function build() {
+export function build(buildType) {
   if (process.env.APPLITOOLS_GITHUB_FT) {
     setApplitoolsId();
   }
@@ -30,5 +30,5 @@ export function build() {
     execCommand('npm run pr-postbuild --if-present');
   }
 
-  execCommand('npm test');
+  execCommand(`npm run ${buildType}`);
 }
