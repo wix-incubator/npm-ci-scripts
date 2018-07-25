@@ -41,7 +41,7 @@ function npmInstall(shouldRunInDebug) {
   }
 }
 
-export function build() {
+export function build(buildType) {
   const shouldRunInDebug = process.env.NPM_CI_DEBUG === 'true';
   console.log(`build in debug mode: ${shouldRunInDebug}`);
 
@@ -61,5 +61,5 @@ export function build() {
     execCommand('npm run pr-postbuild --if-present');
   }
 
-  execCommand('npm test');
+  execCommand(`npm run ${buildType}`);
 }
