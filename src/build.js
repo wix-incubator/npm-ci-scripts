@@ -2,15 +2,43 @@ import {execSync} from 'child_process';
 import {fileExists, execCommand} from './utils';
 import {setApplitoolsId} from './applitoolsScripts';
 
+function getYarnFlags(frozenLockfile, shouldRunInDebug) {
+  return [
+    ...(frozenLockfile ? ['--frozen-lockfile'] : []),
+    ...(shouldRunInDebug ? ['--verbose'] : [])
+  ].join(' ');
+}
+
+function yarnInstall(shouldRunInDebug) {
+  if (shouldRunInDebug) {
+    execCommand('yarn cache clean');
+  }
+  const yarnConfigFlags = getYarnFlags(fileExists('yarn.lock'), shouldRunInDebug);
+  execCommand(`yarn install ${yarnConfigFlags}`, 'yarn install', 2);
+}
+
 function npmVersion() {
   return parseFloat(execSync('npm --version | cut -d. -f1,2').toString());
 }
 
-function getNpmConfigFlags(shouldRunInDebug) {
+function getNpmFlags(shouldRunInDebug) {
   return [
     '--cache ~/.npm.$(npm --version)',
     ...(shouldRunInDebug ? ['--prefer-online', '--loglevel verbose'] : [])
   ].join(' ');
+}
+
+function npmInstall(shouldRunInDebug) {
+  const npmFlags = getNpmFlags(shouldRunInDebug);
+  if (fileExists('package-lock.json')) {
+    if (npmVersion() >= 5.7) {
+      execCommand(`npm ci ${npmFlags}`, 'npm ci', 2);
+    } else {
+      execCommand(`npm install ${npmFlags}`, 'npm install', 2);
+    }
+  } else {
+    execCommand(`npm install --no-package-lock ${npmFlags}`, 'npm install', 2);
+  }
 }
 
 export function build() {
@@ -22,26 +50,9 @@ export function build() {
   }
 
   if (fileExists('yarn.lock') || fileExists('.yarnrc')) {
-    if (shouldRunInDebug) {
-      execCommand('yarn cache clean');
-    }
-    const yarnConfigFlag = shouldRunInDebug ? '--verbose' : '';
-    if (fileExists('yarn.lock')) {
-      execCommand(`yarn install --frozen-lockfile ${yarnConfigFlag}`, 'yarn install', 2);
-    } else {
-      execCommand(`yarn install ${yarnConfigFlag}`, 'yarn install', 2);
-    }
+    yarnInstall(shouldRunInDebug);
   } else {
-    const npmConfigFlags = getNpmConfigFlags(shouldRunInDebug);
-    if (fileExists('package-lock.json')) {
-      if (npmVersion() >= 5.7) {
-        execCommand(`npm ci ${npmConfigFlags}`, 'npm ci', 2);
-      } else {
-        execCommand(`npm install ${npmConfigFlags}`, 'npm install', 2);
-      }
-    } else {
-      execCommand(`npm install --no-package-lock ${npmConfigFlags}`, 'npm install', 2);
-    }
+    npmInstall(shouldRunInDebug);
   }
 
   execCommand('npm run build --if-present');
