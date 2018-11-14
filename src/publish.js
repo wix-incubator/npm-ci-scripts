@@ -11,10 +11,10 @@ const OLD_TAG = 'old';
 
 function getPackageInfo() {
   try {
-    return JSON.parse(execSync(`npm show --json`).toString());
+    return JSON.parse(execSync(`npm show --json`, {stdio: 'pipe'}).toString());
   } catch (error) {
     if (error.stderr.toString().indexOf('npm ERR! code E404') !== -1) {
-      console.error(chalk.yellow('\nWarning: package not found. Possibly not published yet'));
+      console.error(chalk.yellow('\nWarning: package not found. Going to publish for the first time'));
       return {};
     }
     throw error;
@@ -63,8 +63,10 @@ export function publish(flags = '') {
   if (!shouldPublishPackage(info, version)) {
     console.log(chalk.blue(`${name}@${version} already exists on registry ${registry}`));
     console.log('\nNo publish performed');
+    console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`)
   } else {
     execPublish(info, version, flags);
     console.log(chalk.green(`\nPublish "${name}@${version}" successfully to ${registry}`));
+    console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published: ${name}@${version}']`)
   }
 }
