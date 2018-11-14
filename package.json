@@ -18,7 +18,7 @@
   "scripts": {
     "start": "yoshi start",
     "precommit": "yoshi lint",
-    "pretest": "yoshi build",
+    "pretest": "cat ~/.npmrc; yoshi build",
     "test": "yoshi test",
     "posttest": "yoshi lint",
     "release": "yoshi release"
