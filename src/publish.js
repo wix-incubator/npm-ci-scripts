@@ -63,10 +63,10 @@ export function publish(flags = '') {
   if (!shouldPublishPackage(info, version)) {
     console.log(chalk.blue(`${name}@${version} already exists on registry ${registry}`));
     console.log('\nNo publish performed');
-    console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`)
+    console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`);
   } else {
     execPublish(info, version, flags);
     console.log(chalk.green(`\nPublish "${name}@${version}" successfully to ${registry}`));
-    console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published: ${name}@${version}']`)
+    console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published: ${name}@${version}']`);
   }
 }
