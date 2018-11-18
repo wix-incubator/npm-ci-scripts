@@ -66,7 +66,7 @@ function updateLockFiles(packageName) {
 
 function verifyWixPackage(packageName) {
   const result = execSync(`npm view ${packageName} publishConfig.registry`).toString();
-  return (
+  return Boolean(
     result.includes('npm.dev.wixpress.com') ||
     result.match(/https?:\/\/repo.dev.wix\//)
   );
