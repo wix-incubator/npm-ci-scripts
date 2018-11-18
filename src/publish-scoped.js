@@ -42,6 +42,10 @@ function getScopedName(name) {
   return '@wix/' + name;
 }
 
+function unscope(name) {
+  return name.split('/')[1];
+}
+
 function run(cmd) {
   execSync(cmd, {stdio: 'inherit'});
 }
@@ -60,6 +64,24 @@ function updateLockFiles(packageName) {
   updateLockFileIfExists('package-lock.json', packageName);
 }
 
+function verifyWixPackage(packageName) {
+  const result = execSync(`npm view ${packageName} publishConfig.registry`).toString();
+  return (
+    result.includes('npm.dev.wixpress.com') ||
+    result.match(/https?:\/\/repo.dev.wix\//)
+  );
+}
+
+function publishUnscopedPackage(originalPackage) {
+  const unscopedPackage = {...originalPackage, name: unscope(originalPackage.name) }
+  if (!verifyWixPackage(unscopedPackage.name)) {
+    console.log("Skipping publishing unscoped package: not a Wix package");
+  } else {
+    console.log(`Publishing unscoped package ${unscopedPackage.name}`);
+    publishToRegistry(unscopedPackage, 'http://npm.dev.wixpress.com');
+  }
+}
+
 export function publishScoped() {
   const pkg = readJsonFile('package.json');
   const bkp = readJsonFile('package.json');
@@ -73,6 +95,8 @@ export function publishScoped() {
       publishToRegistry(pkg, 'http://npm.dev.wixpress.com/');
       if (!isScoped(bkp.name)) {
         publishToRegistry(pkg, 'https://registry.npmjs.org/');
+      } else {
+        publishUnscopedPackage(bkp);
       }
 
       console.log('Granting access to "readonly" group to access', pkg.name);
