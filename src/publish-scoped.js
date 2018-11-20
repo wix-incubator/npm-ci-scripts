@@ -1,5 +1,5 @@
 import {publish} from './publish';
-import {execSync} from 'child_process';
+import {execSync, spawnSync} from 'child_process';
 import {writeFileSync, unlinkSync} from 'fs';
 import {writeJsonFile, readJsonFile, fileExists} from './utils';
 
@@ -64,18 +64,31 @@ function updateLockFiles(packageName) {
   updateLockFileIfExists('package-lock.json', packageName);
 }
 
+function fetchJSONSync(url) {
+  const result = spawnSync('curl', ['--silent', url], {encoding: 'utf8'}).stdout;
+  return JSON.parse(result);
+}
+
 function verifyWixPackage(packageName) {
-  const result = execSync(`npm view ${packageName} publishConfig.registry`).toString();
-  return Boolean(
-    result.includes('npm.dev.wixpress.com') ||
-    result.match(/https?:\/\/repo.dev.wix\//)
-  );
+  try {
+    const packageContents = fetchJSONSync(`http://npm.dev.wixpress.com/${packageName}/latest`);
+    const result = packageContents.publishConfig && packageContents.publishConfig.registry;
+    return Boolean(
+      result && (
+        result.includes('npm.dev.wixpress.com') ||
+        result.match(/https?:\/\/repo.dev.wix\//)
+      )
+    );
+  } catch (e) {
+    console.error(`An error occured while looking for ${packageName} in Wix's registry:`, e);
+    return false;
+  }
 }
 
 function publishUnscopedPackage(originalPackage) {
-  const unscopedPackage = {...originalPackage, name: unscope(originalPackage.name) }
+  const unscopedPackage = {...originalPackage, name: unscope(originalPackage.name)};
   if (!verifyWixPackage(unscopedPackage.name)) {
-    console.log("Skipping publishing unscoped package: not a Wix package");
+    console.log('Skipping publishing unscoped package: not a Wix package');
   } else {
     console.log(`Publishing unscoped package ${unscopedPackage.name}`);
     publishToRegistry(unscopedPackage, 'http://npm.dev.wixpress.com');
@@ -95,7 +108,7 @@ export function publishScoped() {
       publishToRegistry(pkg, 'http://npm.dev.wixpress.com/');
       if (!isScoped(bkp.name)) {
         publishToRegistry(pkg, 'https://registry.npmjs.org/');
-      } else {
+      } else if (process.env.PUBLISH_UNSCOPED === 'true') {
         publishUnscopedPackage(bkp);
       }
 
