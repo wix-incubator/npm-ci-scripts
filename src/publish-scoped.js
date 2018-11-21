@@ -87,6 +87,7 @@ function verifyWixPackage(packageName) {
 
 function publishUnscopedPackage(originalPackage) {
   const unscopedPackage = {...originalPackage, name: unscope(originalPackage.name)};
+  updateLockFiles(unscopedPackage.name);
   if (!verifyWixPackage(unscopedPackage.name)) {
     console.log('Skipping publishing unscoped package: not a Wix package');
   } else {
