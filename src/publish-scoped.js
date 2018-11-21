@@ -64,6 +64,19 @@ function updateLockFiles(packageName) {
   updateLockFileIfExists('package-lock.json', packageName);
 }
 
+// Verifies if a given package name is an internal Wix package
+// by looking into the latest version `publishConfig.registry` configuration
+// in `package.json`
+//
+// Examples:
+//   > verifyWixPackage('this-package-surely-doesnt-exist')
+//   false
+//
+//   > verifyWixPackage('react')
+//   false
+//
+//   > verifyWixPackage('santa-core-utils')
+//   true
 function verifyWixPackage(packageName) {
   try {
     const result = execSync(
