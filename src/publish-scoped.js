@@ -1,5 +1,5 @@
 import {publish} from './publish';
-import {execSync, spawnSync} from 'child_process';
+import {execSync} from 'child_process';
 import {writeFileSync, unlinkSync} from 'fs';
 import {writeJsonFile, readJsonFile, fileExists} from './utils';
 
@@ -64,23 +64,21 @@ function updateLockFiles(packageName) {
   updateLockFileIfExists('package-lock.json', packageName);
 }
 
-function fetchJSONSync(url) {
-  const result = spawnSync('curl', ['--silent', url], {encoding: 'utf8'}).stdout;
-  return JSON.parse(result);
-}
-
 function verifyWixPackage(packageName) {
   try {
-    const packageContents = fetchJSONSync(`http://npm.dev.wixpress.com/${packageName}/latest`);
-    const result = packageContents.publishConfig && packageContents.publishConfig.registry;
+    const result = execSync(
+      `npm view --registry=http://npm.dev.wixpress.com ${packageName} publishConfig.registry`
+    ).toString();
     return Boolean(
-      result && (
-        result.includes('npm.dev.wixpress.com') ||
-        result.match(/https?:\/\/repo.dev.wix\//)
-      )
+      result.includes('npm.dev.wixpress.com') ||
+      result.match(/https?:\/\/repo.dev.wix\//)
     );
   } catch (e) {
-    console.error(`An error occured while looking for ${packageName} in Wix's registry:`, e);
+    if (e.stdout && e.stdout.contains('E404')) {
+      console.log(`Package ${packageName} not found in registry. aborting.`);
+    } else {
+      console.error(`An error occured while looking for ${packageName} in Wix's registry:`, e);
+    }
     return false;
   }
 }
