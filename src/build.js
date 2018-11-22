@@ -28,7 +28,7 @@ export function build(buildType) {
       console.log(`package-lock.json exists but npm version ${currentNpmVersion} is smaller than 5.7, running \`npm install\``);
       execCommand('npm install --cache ~/.npm.$(npm --version)', 'npm install', 2);
     }
-    
+
   } else {
     console.log('there is no lock-files, running `npm install`');
     execCommand('npm install --no-package-lock --cache ~/.npm.$(npm --version)', 'npm install', 2);
