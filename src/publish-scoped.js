@@ -42,6 +42,10 @@ function getScopedName(name) {
   return '@wix/' + name;
 }
 
+function unscope(name) {
+  return name.split('/')[1];
+}
+
 function run(cmd) {
   execSync(cmd, {stdio: 'inherit'});
 }
@@ -60,6 +64,49 @@ function updateLockFiles(packageName) {
   updateLockFileIfExists('package-lock.json', packageName);
 }
 
+// Verifies if a given package name is an internal Wix package
+// by looking into the latest version `publishConfig.registry` configuration
+// in `package.json`
+//
+// Examples:
+//   > verifyWixPackage('this-package-surely-doesnt-exist')
+//   false
+//
+//   > verifyWixPackage('react')
+//   false
+//
+//   > verifyWixPackage('santa-core-utils')
+//   true
+function verifyWixPackage(packageName) {
+  try {
+    const result = execSync(
+      `npm view --registry=http://npm.dev.wixpress.com ${packageName} publishConfig.registry`
+    ).toString();
+    return Boolean(
+      result.includes('npm.dev.wixpress.com') ||
+      result.match(/https?:\/\/repo.dev.wix\//)
+    );
+  } catch (e) {
+    if (e.stdout && e.stdout.contains('E404')) {
+      console.log(`Package ${packageName} not found in registry. aborting.`);
+    } else {
+      console.error(`An error occured while looking for ${packageName} in Wix's registry:`, e);
+    }
+    return false;
+  }
+}
+
+function publishUnscopedPackage(originalPackage) {
+  const unscopedPackage = {...originalPackage, name: unscope(originalPackage.name)};
+  updateLockFiles(unscopedPackage.name);
+  if (!verifyWixPackage(unscopedPackage.name)) {
+    console.log('Skipping publishing unscoped package: not a Wix package');
+  } else {
+    console.log(`Publishing unscoped package ${unscopedPackage.name}`);
+    publishToRegistry(unscopedPackage, 'http://npm.dev.wixpress.com');
+  }
+}
+
 export function publishScoped() {
   const pkg = readJsonFile('package.json');
   const bkp = readJsonFile('package.json');
@@ -73,6 +120,8 @@ export function publishScoped() {
       publishToRegistry(pkg, 'http://npm.dev.wixpress.com/');
       if (!isScoped(bkp.name)) {
         publishToRegistry(pkg, 'https://registry.npmjs.org/');
+      } else if (bkp.publishUnscoped) {
+        publishUnscopedPackage(bkp);
       }
 
       console.log('Granting access to "readonly" group to access', pkg.name);
