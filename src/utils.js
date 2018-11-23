@@ -9,15 +9,20 @@ export function logBlockClose(log) {
   console.log('##teamcity[blockClosed name=\'' + log + '\']');
 }
 
-export function execCommand(cmd, log, retries) {
+export function execCommand(cmd, log, retries, retryCmd) {
   log = log || cmd;
   logBlockOpen(log);
   try {
+    console.log('running:', cmd);
     execSync(cmd, {stdio: 'inherit'});
     logBlockClose(log);
   } catch (e) {
     logBlockClose(log);
     if (retries > 0) {
+      if (retryCmd) {
+        console.log('running:', retryCmd);
+        execSync(retryCmd, {stdio: 'inherit'});
+      }
       const retry = parseInt((log.match(/ \(retry (\d+)\)/) || ['', '0'])[1], 10);
       log = log.replace(/ \(retry (\d+)\)/, '') + ' (retry ' + (retry + 1) + ')';
       execCommand(cmd, log, retries - 1);
