@@ -129,7 +129,7 @@ export function publishScoped() {
       publishToRegistry(pkg, 'http://npm.dev.wixpress.com/');
       if (!isScoped(bkp.name)) {
         publishToRegistry(pkg, 'https://registry.npmjs.org/');
-      } else if (bkp.publishUnscoped) {
+      } else if (bkp.publishUnscoped !== false) {
         publishUnscopedPackage(bkp);
       }
 
