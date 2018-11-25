@@ -86,8 +86,8 @@ function verifyWixPackage(packageName) {
       `npm view --registry=http://npm.dev.wixpress.com ${packageName} publishConfig.registry`
     ).toString();
     return Boolean(
-      result.includes('npm.dev.wixpress.com') ||
-        result.match(/https?:\/\/repo.dev.wix\//)
+      result.includes('wixpress') ||
+      result.match(/https?:\/\/repo.dev.wix\//)
     );
   } catch (e) {
     if (e.stdout && e.stdout.contains('E404')) {
