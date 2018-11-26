@@ -87,7 +87,7 @@ function verifyWixPackage(packageName) {
       result.match(/https?:\/\/repo.dev.wix\//)
     );
   } catch (e) {
-    if (e.stdout && e.stdout.contains('E404')) {
+    if (e.stdout && e.stdout.includes('E404')) {
       console.log(`Package ${packageName} not found in registry. aborting.`);
     } else {
       console.error(`An error occured while looking for ${packageName} in Wix's registry:`, e);
