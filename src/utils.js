@@ -23,8 +23,12 @@ export function execCommand(cmd, log, retries, retryCmd) {
         console.log('running:', retryCmd);
         execSync(retryCmd, {stdio: 'inherit'});
       }
-      const retry = parseInt((log.match(/ \(retry (\d+)\)/) || ['', '0'])[1], 10);
-      log = log.replace(/ \(retry (\d+)\)/, '') + ' (retry ' + (retry + 1) + ')';
+      const retry = parseInt(
+        (log.match(/ \(retry (\d+)\)/) || ['', '0'])[1],
+        10
+      );
+      log =
+        log.replace(/ \(retry (\d+)\)/, '') + ' (retry ' + (retry + 1) + ')';
       execCommand(cmd, log, retries - 1);
     } else {
       process.exit(e.status);
@@ -49,3 +53,16 @@ export function readJsonFile(name) {
   return JSON.parse(readFileSync(name, 'utf8'));
 }
 
+export function npmInstallExec(cmd) {
+  const params = '--cache ~/.npm.$(npm --version)';
+  execCommand(
+    `${cmd} ${params}`,
+    'npm install',
+    2,
+    `npm cache clean ${params} --force`
+  );
+}
+
+export function npmVersion() {
+  return parseFloat(execSync('npm --version | cut -d. -f1,2').toString());
+}

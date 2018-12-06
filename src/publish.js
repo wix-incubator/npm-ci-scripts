@@ -1,8 +1,8 @@
-import {readJsonFile} from './utils';
 import {execSync} from 'child_process';
 import chalk from 'chalk';
 import semver from 'semver';
 import {get} from 'lodash';
+import {readJsonFile} from './utils';
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 const LATEST_TAG = 'latest';
@@ -11,10 +11,16 @@ const OLD_TAG = 'old';
 
 function getPackageInfo() {
   try {
-    return JSON.parse(execSync(`npm show --json`, {stdio: 'pipe'}).toString());
+    return JSON.parse(
+      execSync(`npm show --json`, {stdio: 'pipe'}).toString()
+    );
   } catch (error) {
     if (error.stderr.toString().indexOf('npm ERR! code E404') !== -1) {
-      console.error(chalk.yellow('\nWarning: package not found. Going to publish for the first time'));
+      console.error(
+        chalk.yellow(
+          '\nWarning: package not found. Going to publish for the first time'
+        )
+      );
       return {};
     }
     throw error;
@@ -27,7 +33,8 @@ function shouldPublishPackage(info, version) {
 }
 
 function getTag(info, version) {
-  const isLessThanLatest = () => semver.lt(version, get(info, 'dist-tags.latest', '0.0.0'));
+  const isLessThanLatest = () =>
+    semver.lt(version, get(info, 'dist-tags.latest', '0.0.0'));
   const isPreRelease = () => semver.prerelease(version) !== null;
 
   if (isLessThanLatest()) {
@@ -40,8 +47,13 @@ function getTag(info, version) {
 }
 
 function execPublish(info, version, flags) {
-  const publishCommand = `npm publish --tag=${getTag(info, version)} ${flags}`.trim();
-  console.log(chalk.magenta(`Running: "${publishCommand}" for ${info.name}@${version}`));
+  const publishCommand = `npm publish --tag=${getTag(
+    info,
+    version
+  )} ${flags}`.trim();
+  console.log(
+    chalk.magenta(`Running: "${publishCommand}" for ${info.name}@${version}`)
+  );
   execSync(publishCommand);
 }
 
@@ -61,12 +73,20 @@ export function publish(flags = '') {
   console.log(`Starting the release process for ${chalk.bold(name)}\n`);
 
   if (!shouldPublishPackage(info, version)) {
-    console.log(chalk.blue(`${name}@${version} already exists on registry ${registry}`));
+    console.log(
+      chalk.blue(`${name}@${version} already exists on registry ${registry}`)
+    );
     console.log('\nNo publish performed');
-    console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`);
+    console.log(
+      `##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`
+    );
   } else {
     execPublish(info, version, flags);
-    console.log(chalk.green(`\nPublish "${name}@${version}" successfully to ${registry}`));
-    console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published: ${name}@${version}']`);
+    console.log(
+      chalk.green(`\nPublish "${name}@${version}" successfully to ${registry}`)
+    );
+    console.log(
+      `##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published: ${name}@${version}']`
+    );
   }
 }
