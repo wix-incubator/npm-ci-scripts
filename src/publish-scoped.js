@@ -133,6 +133,7 @@ export function publishScoped() {
         publishUnscopedPackage(bkp);
       }
 
+
       console.log('Granting access to "readonly" group to access', pkg.name);
       run(
         'npm access grant read-write wix:publishers ' +
