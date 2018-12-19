@@ -1,4 +1,4 @@
 import {execCommand} from './utils';
 export function customScript(npmScript) {
-  execCommand(`npm run ${npmScript}`);
+  execCommand(`npm run ${npmScript} --if-present`);
 }
