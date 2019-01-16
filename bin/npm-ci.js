@@ -25,9 +25,19 @@ program
   .action(install);
 
 program
-  .command('build')
+  .command('build [batch]')
   .description('builds the package')
-  .action(build);
+  .action(batch => {
+    if (!batch) {
+      build();
+    } else {
+      // backward support of previous api of running batches
+      // remove when santa stops using this feature
+      install();
+      build();
+      customScript(batch);
+    }
+  });
 
 program
   .command('test')
@@ -43,7 +53,7 @@ program
 program
   .command('custom [script]')
   .description('runs a custom npm script')
-  .action(cmd => customScript(cmd));
+  .action(customScript);
 
 program
   .command('publish')
