@@ -11,12 +11,18 @@ const {publishCli} = require('./publish-cli');
 program.version(require('../../package').version);
 
 program
-  .command('no-publish')
-  .description('runs install, build, test')
-  .action(() => {
+  .command('no-publish [batch]')
+  .description('runs install, build, test/batch')
+  .action(batch => {
     install();
     build();
-    test();
+    if (batch) {
+      // backward support of previous api of running batches
+      // remove when santa stops using this feature
+      customScript(batch);
+    } else {
+      test();
+    }
   });
 
 program
@@ -25,19 +31,9 @@ program
   .action(install);
 
 program
-  .command('build [batch]')
+  .command('build')
   .description('builds the package')
-  .action(batch => {
-    if (!batch) {
-      build();
-    } else {
-      // backward support of previous api of running batches
-      // remove when santa stops using this feature
-      install();
-      build();
-      customScript(batch);
-    }
-  });
+  .action(build);
 
 program
   .command('test')
