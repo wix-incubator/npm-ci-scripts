@@ -125,7 +125,16 @@ export function publishScoped() {
       }
 
       console.log('Granting access to "readonly" group to access', pkg.name);
-      run('npm access grant read-only wix:readonly ' + pkg.name + ' --@wix:registry=https://registry.npmjs.org/');
+      run(
+        'npm access grant read-write wix:publishers ' +
+          pkg.name +
+          ' --@wix:registry=https://registry.npmjs.org/'
+      );
+      run(
+        'npm access grant read-only wix:developers ' +
+          pkg.name +
+          ' --@wix:registry=https://registry.npmjs.org/'
+      );
 
       updateLockFiles(bkp.name);
       writeJsonFile('package.json', bkp);
