@@ -18,10 +18,7 @@ function validate(pkg) {
       return 'package uses unsupported scope: ' + pkg.name;
     }
   } else if (!isWixRegistry(pkg.publishConfig.registry)) {
-    return (
-      'package is being published outside wix registry: ' +
-      pkg.publishConfig.registry
-    );
+    return 'package is being published outside wix registry: ' + pkg.publishConfig.registry;
   }
   if (pkg.publishScoped === false || fileExists('publish-scoped.ignore')) {
     return 'developer switched a feature off';
@@ -93,20 +90,14 @@ function verifyWixPackage(packageName) {
     if (e.stdout && e.stdout.includes('E404')) {
       console.log(`Package ${packageName} not found in registry. aborting.`);
     } else {
-      console.error(
-        `An error occured while looking for ${packageName} in Wix's registry:`,
-        e
-      );
+      console.error(`An error occured while looking for ${packageName} in Wix's registry:`, e);
     }
     return false;
   }
 }
 
 function publishUnscopedPackage(originalPackage) {
-  const unscopedPackage = {
-    ...originalPackage,
-    name: unscope(originalPackage.name),
-  };
+  const unscopedPackage = {...originalPackage, name: unscope(originalPackage.name)};
   updateLockFiles(unscopedPackage.name);
   if (!verifyWixPackage(unscopedPackage.name)) {
     console.log('Skipping publishing unscoped package: not a Wix package');
@@ -133,7 +124,6 @@ export function publishScoped() {
         publishUnscopedPackage(bkp);
       }
 
-
       console.log('Granting access to "readonly" group to access', pkg.name);
       run(
         'npm access grant read-write wix:publishers ' +
@@ -157,9 +147,6 @@ export function publishScoped() {
       process.exit(1);
     }
   } else {
-    console.log(
-      'Current package is not publishable with scoped name, cause:',
-      result
-    );
+    console.log('Current package is not publishable with scoped name, cause:', result);
   }
 }

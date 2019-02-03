@@ -9,17 +9,13 @@ function getHeadHash() {
 
 function getParentsHashArray() {
   const headCommitHash = getHeadHash();
-  return execSync(`git rev-list --parents -n 1 ${headCommitHash}`)
-    .toString()
-    .split(' ');
+  return execSync(`git rev-list --parents -n 1 ${headCommitHash}`).toString().split(' ');
 }
 
 function getPRHeadHash() {
   const parentsHashArr = getParentsHashArray();
   const isPullRequest = parentsHashArr.length === 3;
-  const parentHashIndex = isPullRequest ?
-    PULL_REQUEST_PARENT_HASH_INDEX :
-    HEAD_HASH_INDEX;
+  const parentHashIndex = isPullRequest ? PULL_REQUEST_PARENT_HASH_INDEX : HEAD_HASH_INDEX;
   return parentsHashArr[parentHashIndex].trim();
 }
 
