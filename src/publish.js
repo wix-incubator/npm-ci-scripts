@@ -54,7 +54,10 @@ function execPublish(info, version, flags) {
 // 3. perform npm publish using the chosen tag.
 export function publish(flags = '') {
   const pkg = readJsonFile('package.json');
-  const registry = get(pkg, 'publishConfig.registry', DEFAULT_REGISTRY);
+  let registry = get(pkg, 'publishConfig.registry', DEFAULT_REGISTRY);
+  if (registry.indexOf('repo.dev.wix/') > -1) {
+    registry = 'http://npm.dev.wixpress.com';
+  }
   const info = getPackageInfo();
   const {name, version} = pkg;
 
