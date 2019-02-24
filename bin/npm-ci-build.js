@@ -9,9 +9,11 @@ program.version(require('../../package').version)
 
 const buildType = program.args[0];
 
-if (buildType) {
-  build(buildType);
-} else {
-  build('test');
-  release();
-}
+(async function () {
+  if (buildType) {
+    await build(buildType);
+  } else {
+    await build('test');
+    release();
+  }
+})();
