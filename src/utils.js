@@ -71,6 +71,10 @@ function readCompressedToBuffer(path) {
 }
 
 function sendFileToSlack(path, title, filename) {
+  if (!process.env.NPM_CI_SLACK_TOKEN) {
+    return Promise.reject(new Error('Unable to send file to slack because env NPM_CI_SLACK_TOKEN is not set'));
+  }
+
   console.log(`Sending ${path} as "${title}" - ${filename}.gz`);
 
   return readCompressedToBuffer(path).then(compressedFile => {
@@ -78,7 +82,7 @@ function sendFileToSlack(path, title, filename) {
       request.post({
         url: 'https://slack.com/api/files.upload',
         formData: {
-          token: 'NEED_A_TOKEN_HERE',
+          token: process.env.NPM_CI_SLACK_TOKEN,
           title,
           channels: 'CFM2ER0DU',
           file: {
