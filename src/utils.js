@@ -1,7 +1,6 @@
 import {writeFileSync, readFileSync, statSync, createReadStream} from 'fs';
 import {execSync, exec} from 'child_process';
 import request from 'request';
-import hostname from 'os';
 import zlib from 'zlib';
 
 export function logBlockOpen(log) {
@@ -121,7 +120,7 @@ export function execCommandAsync(cmd, log, retries, retryCmd) {
           const pathParts = logPath.split('/');
           const filename = pathParts[pathParts.length - 1];
           try {
-            await sendFileToSlack(logPath, `NPM log from ${hostname()} building ${process.env.ARTIFACT_ID} (${process.env.BUILD_VCS_NUMBER})`, filename);
+            await sendFileToSlack(logPath, `NPM log from ${process.env.HOSTNAME} building ${process.env.ARTIFACT_ID} (${process.env.BUILD_VCS_NUMBER})`, filename);
             console.log('npm log sent to slack!');
           } catch (error) {
             console.log('Sending npm log to slack failed', error);
