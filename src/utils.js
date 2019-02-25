@@ -110,11 +110,12 @@ function sendFileToSlack(path, title, filename) {
 }
 
 const npmLogPathRegex = /(\/.+\d{4}-\d{2}-\d{2}T\d{2}_\d{2}_\d{2}_\d{1,3}Z-debug\.log)/g;
+const TEN_MEGABYTES = 10 * 1024 * 1024;
 export function execCommandAsync(cmd, log, retries, retryCmd) {
   return new Promise((resolve, reject) => {
     log = log || cmd;
     logBlockOpen(log);
-    const childProcess = exec(cmd, {stdio: 'pipe'}, async (error, _, stderr) => {
+    const childProcess = exec(cmd, {stdio: 'pipe', maxBuffer: TEN_MEGABYTES}, async (error, _, stderr) => {
       logBlockClose(log);
       if (error) {
         const match = npmLogPathRegex.exec(stderr.toString());
@@ -143,7 +144,7 @@ export function execCommandAsync(cmd, log, retries, retryCmd) {
           return execCommandAsync(cmd, log, retries - 1);
         }
 
-        process.exit(error.code);
+        process.exit(error.code || 1);
         return reject(error);
       }
 
