@@ -19,7 +19,7 @@ async function runPublish() {
 console.log('DANGER! Warnning: publish is force in `npm-ci-scripts` blame @yury');
 const pkg = readJsonFile('package.json');
 delete pkg.private;
-writeJsonFile('package.json');
+writeJsonFile('package.json', pkg);
 runPublish();
 // const pkg = readJsonFile('package.json');
 // if (pkg.private) {
