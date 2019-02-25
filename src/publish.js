@@ -1,4 +1,4 @@
-import {readJsonFile} from './utils';
+import {readJsonFile, execCommandAsync} from './utils';
 import {execSync} from 'child_process';
 import chalk from 'chalk';
 import semver from 'semver';
@@ -41,10 +41,10 @@ function getTag(info, version) {
   }
 }
 
-function execPublish(info, version, flags) {
+async function execPublish(info, version, flags) {
   const publishCommand = `npm publish --tag=${getTag(info, version)} ${flags}`.trim();
   console.log(chalk.magenta(`Running: "${publishCommand}" for ${info.name}@${version}`));
-  execSync(publishCommand);
+  return execCommandAsync(publishCommand);
 }
 
 // 1. verify that the package can be published by checking the registry.
@@ -54,7 +54,7 @@ function execPublish(info, version, flags) {
 // * `next` for a prerelease (beta/alpha/rc).
 // * `latest` as default.
 // 3. perform npm publish using the chosen tag.
-export function publish(flags = '') {
+export async function publish(flags = '') {
   const pkg = readJsonFile('package.json');
   const registry = get(pkg, 'publishConfig.registry', DEFAULT_REGISTRY);
   const info = getPackageInfo();
@@ -67,7 +67,7 @@ export function publish(flags = '') {
     console.log('\nNo publish performed');
     console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`);
   } else {
-    execPublish(info, version, flags);
+    await execPublish(info, version, flags);
     console.log(chalk.green(`\nPublish "${name}@${version}" successfully to ${registry}`));
     console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published: ${name}@${version}']`);
   }
