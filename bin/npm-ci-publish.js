@@ -1,6 +1,6 @@
 import {publish} from '../src/publish';
 import {publishScoped} from '../src/publish-scoped';
-import {logBlockOpen, logBlockClose, execCommand, readJsonFile, writeJsonFile} from '../src/utils';
+import {logBlockOpen, logBlockClose, execCommand, readJsonFile} from '../src/utils';
 
 execCommand('npm run release --if-present');
 
@@ -16,15 +16,10 @@ async function runPublish() {
   }
 }
 
-console.log('DANGER! Warnning: publish is force in `npm-ci-scripts` blame @yury');
 const pkg = readJsonFile('package.json');
-delete pkg.private;
-writeJsonFile('package.json', pkg);
-runPublish();
-// const pkg = readJsonFile('package.json');
-// if (pkg.private) {
-//   console.log('Skipping publish (probably no change in tarball)');
-//   console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`);
-// } else {
-//   runPublish();
-// }
+if (pkg.private) {
+  console.log('Skipping publish (probably no change in tarball)');
+  console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`);
+} else {
+  runPublish();
+}
