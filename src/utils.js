@@ -129,6 +129,8 @@ export function execCommandAsync(cmd, log, retries, retryCmd) {
           } catch (error) {
             console.log('Sending npm log to slack failed', error);
           }
+        } else {
+          console.log(`Error executing '${cmd}', no npm log detected.`, error);
         }
 
         if (retries > 0) {
