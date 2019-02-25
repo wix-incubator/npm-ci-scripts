@@ -9,7 +9,7 @@ function publishToRegistry(pkg, to) {
   writeJsonFile('package.json', pkg);
   writeFileSync('.npmrc', `@wix:registry=${to}`);
   console.log('Publishing', pkg.name, 'to', to);
-  publish('--ignore-scripts');
+  return publish('--ignore-scripts');
 }
 
 function validate(pkg) {
@@ -96,18 +96,18 @@ function verifyWixPackage(packageName) {
   }
 }
 
-function publishUnscopedPackage(originalPackage) {
+async function publishUnscopedPackage(originalPackage) {
   const unscopedPackage = {...originalPackage, name: unscope(originalPackage.name)};
   updateLockFiles(unscopedPackage.name);
   if (!verifyWixPackage(unscopedPackage.name)) {
     console.log('Skipping publishing unscoped package: not a Wix package');
   } else {
     console.log(`Publishing unscoped package ${unscopedPackage.name}`);
-    publishToRegistry(unscopedPackage, 'http://npm.dev.wixpress.com');
+    await publishToRegistry(unscopedPackage, 'http://npm.dev.wixpress.com');
   }
 }
 
-export function publishScoped() {
+export async function publishScoped() {
   const pkg = readJsonFile('package.json');
   const bkp = readJsonFile('package.json');
 
@@ -117,11 +117,11 @@ export function publishScoped() {
     try {
       updateLockFiles(pkg.name);
 
-      publishToRegistry(pkg, 'http://npm.dev.wixpress.com/');
+      await publishToRegistry(pkg, 'http://npm.dev.wixpress.com/');
       if (!isScoped(bkp.name)) {
-        publishToRegistry(pkg, 'https://registry.npmjs.org/');
+        await publishToRegistry(pkg, 'https://registry.npmjs.org/');
       } else if (bkp.publishUnscoped !== false) {
-        publishUnscopedPackage(bkp);
+        await publishUnscopedPackage(bkp);
       }
 
       console.log('Granting access to "readonly" group to access', pkg.name);
