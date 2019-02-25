@@ -1,6 +1,6 @@
 import {publish} from '../src/publish';
 import {publishScoped} from '../src/publish-scoped';
-import {logBlockOpen, logBlockClose, execCommand} from '../src/utils';
+import {logBlockOpen, logBlockClose, execCommand, readJsonFile, writeJsonFile} from '../src/utils';
 
 execCommand('npm run release --if-present');
 
@@ -17,6 +17,9 @@ async function runPublish() {
 }
 
 console.log('DANGER! Warnning: publish is force in `npm-ci-scripts` blame @yury');
+const pkg = readJsonFile('package.json');
+delete pkg.private;
+writeJsonFile('package.json');
 runPublish();
 // const pkg = readJsonFile('package.json');
 // if (pkg.private) {
