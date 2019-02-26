@@ -176,7 +176,9 @@ export function execCommandAsync(cmd, log, retries, retryCmd) {
           }
           const retry = parseInt((log.match(/ \(retry (\d+)\)/) || ['', '0'])[1], 10);
           log = log.replace(/ \(retry (\d+)\)/, '') + ' (retry ' + (retry + 1) + ')';
-          return execCommandAsync(cmd, log, retries - 1);
+          return execCommandAsync(cmd, log, retries - 1)
+            .then(resolve)
+            .catch(reject);
         }
 
         process.exit(error.code || 1);
