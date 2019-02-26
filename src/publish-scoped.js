@@ -71,17 +71,15 @@ function updateLockFiles(packageName) {
 function verifyWixPackage(packageName) {
   try {
     const result = execSync(
-      `npm view --registry=http://npm.dev.wixpress.com ${packageName} publishConfig.registry`
+      `npm view --registry=http://npm.dev.wixpress.com ${packageName} publishConfig.registry`,
+      {stdio: 'pipe'}
     ).toString();
-    return Boolean(
-      result.includes('wixpress') ||
-      result.match(/https?:\/\/repo.dev.wix\//)
-    );
-  } catch (e) {
-    if (e.stdout && e.stdout.includes('E404')) {
+    return isWixRegistry(result);
+  } catch (error) {
+    if (error.stderr.toString().includes('npm ERR! code E404')) {
       console.log(`Package ${packageName} not found in registry. aborting.`);
     } else {
-      console.error(`An error occured while looking for ${packageName} in Wix's registry:`, e);
+      console.error(`An error occured while looking for ${packageName} in Wix's registry:`, error);
     }
     return false;
   }

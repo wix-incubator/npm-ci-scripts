@@ -13,7 +13,7 @@ function getPackageInfo() {
   try {
     return JSON.parse(execSync(`npm show --json`, {stdio: 'pipe'}).toString());
   } catch (error) {
-    if (error.stderr.toString().indexOf('npm ERR! code E404') !== -1) {
+    if (error.stderr.toString().includes('npm ERR! code E404')) {
       console.error(chalk.yellow('\nWarning: package not found. Going to publish for the first time'));
       return {};
     }
