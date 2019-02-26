@@ -2,9 +2,14 @@ import {publish} from '../src/publish';
 import {publishScoped} from '../src/publish-scoped';
 import {logBlockOpen, logBlockClose, execCommand, readJsonFile, writeJsonFile} from '../src/utils';
 
-const previousVersion = readJsonFile('package.json').version;
+let pkg = readJsonFile('package.json');
+const previousVersion = pkg.version;
+if (pkg.name.indexOf('@wix/') === 0) {
+  pkg.publishConfig = {registry: 'https://registry.npmjs.org/'};
+  writeJsonFile('package.json', pkg);
+}
 execCommand('npm run release --if-present');
-const pkg = readJsonFile('package.json');
+pkg = readJsonFile('package.json');
 if (pkg.private && previousVersion !== pkg.version) {
   console.log('forcing republish in order to sync versions');
   delete pkg.private;
@@ -27,9 +32,5 @@ if (pkg.private) {
   console.log('Skipping publish (probably no change in tarball)');
   console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`);
 } else {
-  if (pkg.name.indexOf('@wix/') === 0) {
-    pkg.publishConfig = {registry: 'https://registry.npmjs.org/'};
-    writeJsonFile('package.json', pkg);
-  }
   runPublish();
 }
