@@ -2,7 +2,14 @@ import {publish} from '../src/publish';
 import {publishScoped} from '../src/publish-scoped';
 import {logBlockOpen, logBlockClose, execCommand, readJsonFile, writeJsonFile} from '../src/utils';
 
+const previousVersion = readJsonFile('package.json').version;
 execCommand('npm run release --if-present');
+const pkg = readJsonFile('package.json').version;
+if (pkg.private && previousVersion !== pkg.version) {
+  console.log('forcing republish in order to sync versions');
+  delete pkg.private;
+  writeJsonFile('package.json', pkg);
+}
 
 async function runPublish() {
   logBlockOpen('npm publish');
@@ -16,7 +23,6 @@ async function runPublish() {
   }
 }
 
-const pkg = readJsonFile('package.json');
 if (pkg.private) {
   console.log('Skipping publish (probably no change in tarball)');
   console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`);
