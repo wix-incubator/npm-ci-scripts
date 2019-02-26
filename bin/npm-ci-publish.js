@@ -4,7 +4,7 @@ import {logBlockOpen, logBlockClose, execCommand, readJsonFile, writeJsonFile} f
 
 const previousVersion = readJsonFile('package.json').version;
 execCommand('npm run release --if-present');
-const pkg = readJsonFile('package.json').version;
+const pkg = readJsonFile('package.json');
 if (pkg.private && previousVersion !== pkg.version) {
   console.log('forcing republish in order to sync versions');
   delete pkg.private;
