@@ -1,5 +1,4 @@
-import {fileExists, readJsonFile, execCommandAsync} from './utils';
-import {writeFileSync, unlinkSync} from 'fs';
+import {readJsonFile, execCommandAsync} from './utils';
 import {execSync} from 'child_process';
 import chalk from 'chalk';
 import semver from 'semver';
@@ -68,15 +67,7 @@ export async function publish(flags = '') {
     console.log('\nNo publish performed');
     console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`);
   } else {
-    let unlinkWhenDone = false;
-    if (!fileExists('.npmrc')) {
-      writeFileSync('.npmrc', `@wix:registry=${registry}`);
-      unlinkWhenDone = true;
-    }
     await execPublish(info, version, flags);
-    if (unlinkWhenDone) {
-      unlinkSync('.npmrc');
-    }
     console.log(chalk.green(`\nPublish "${name}@${version}" successfully to ${registry}`));
     console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published: ${name}@${version}']`);
   }
