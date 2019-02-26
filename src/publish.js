@@ -11,8 +11,6 @@ const OLD_TAG = 'old';
 
 function getPackageInfo() {
   try {
-    console.log('publish::getPackageInfo() registry:', execSync(`npm config get registry`, {stdio: 'pipe'}).toString());
-    console.log('publish::getPackageInfo() @wix:registry', execSync(`npm config get @wix:registry`, {stdio: 'pipe'}).toString());
     return JSON.parse(execSync(`npm show --json`, {stdio: 'pipe'}).toString());
   } catch (error) {
     if (error.stderr.toString().indexOf('npm ERR! code E404') !== -1) {
@@ -42,6 +40,8 @@ function getTag(info, version) {
 }
 
 async function execPublish(info, version, flags) {
+  console.log('publish::execPublish() registry:', execSync(`npm config get registry`, {stdio: 'pipe'}).toString());
+  console.log('publish::execPublish() @wix:registry', execSync(`npm config get @wix:registry`, {stdio: 'pipe'}).toString());
   const publishCommand = `npm publish --tag=${getTag(info, version)} ${flags}`.trim();
   console.log(chalk.magenta(`Running: "${publishCommand}" for ${info.name}@${version}`));
   return execCommandAsync(publishCommand);
