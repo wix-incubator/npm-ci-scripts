@@ -1,14 +1,17 @@
 import {publish} from '../src/publish';
 import {publishScoped} from '../src/publish-scoped';
 import {logBlockOpen, logBlockClose, execCommand, readJsonFile, writeJsonFile} from '../src/utils';
+import {writeFileSync, unlinkSync} from 'fs';
 
 let pkg = readJsonFile('package.json');
 const previousVersion = pkg.version;
 if (pkg.name.indexOf('@wix/') === 0) {
   pkg.publishConfig = {registry: 'https://registry.npmjs.org/'};
   writeJsonFile('package.json', pkg);
+  writeFileSync('.npmrc', '@wix:registry=https://registry.npmjs.org/'); //trust latest from npmjs
 }
 execCommand('npm run release --if-present');
+unlinkSync('.npmrc');
 pkg = readJsonFile('package.json');
 if (pkg.private && previousVersion !== pkg.version) {
   console.log('forcing republish in order to sync versions');
