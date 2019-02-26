@@ -3,11 +3,14 @@ import {execSync} from 'child_process';
 import {writeFileSync, unlinkSync} from 'fs';
 import {writeJsonFile, readJsonFile, fileExists} from './utils';
 
-function publishToRegistry(pkg, to) {
+function publishToRegistry(name, to) {
+  const pkg = readJsonFile('package.json');
+  pkg.name = name;
   pkg.publishConfig.registry = to;
   pkg.publishConfig['@wix:registry'] = to;
   writeJsonFile('package.json', pkg);
   writeFileSync('.npmrc', `@wix:registry=${to}`);
+  updateLockFiles(name);
   console.log('Publishing', pkg.name, 'to', to);
   return publish('--ignore-scripts');
 }
@@ -36,18 +39,6 @@ function isWixScoped(name) {
 
 function isScoped(name) {
   return name.indexOf('@') >= 0;
-}
-
-function getScopedName(name) {
-  return '@wix/' + name;
-}
-
-function unscope(name) {
-  return name.split('/')[1];
-}
-
-function run(cmd) {
-  execSync(cmd, {stdio: 'inherit'});
 }
 
 function updateLockFileIfExists(fileName, packageName) {
@@ -96,54 +87,46 @@ function verifyWixPackage(packageName) {
   }
 }
 
-async function publishUnscopedPackage(originalPackage) {
-  const unscopedPackage = {...originalPackage, name: unscope(originalPackage.name)};
-  updateLockFiles(unscopedPackage.name);
-  if (!verifyWixPackage(unscopedPackage.name)) {
-    console.log('Skipping publishing unscoped package: not a Wix package');
-  } else {
-    console.log(`Publishing unscoped package ${unscopedPackage.name}`);
-    await publishToRegistry(unscopedPackage, 'http://npm.dev.wixpress.com');
-  }
+function grantPermissions(name) {
+  const options = '--@wix:registry=https://registry.npmjs.org/';
+  console.log('Granting access to "readonly" group to access', name);
+  execSync(`npm access grant read-write wix:publishers ${name} ${options}`, {stdio: 'inherit'});
+  execSync(`npm access grant read-only wix:developers ${name} ${options}`, {stdio: 'inherit'});
 }
 
 export async function publishScoped() {
   const pkg = readJsonFile('package.json');
-  const bkp = readJsonFile('package.json');
+  const restore = (bkp => () => {
+    updateLockFiles(bkp.name);
+    writeJsonFile('package.json', bkp);
+    unlinkSync('.npmrc');
+  })(readJsonFile('package.json'));
 
   const result = validate(pkg);
   if (result === true) {
-    pkg.name = isScoped(pkg.name) ? pkg.name : getScopedName(pkg.name);
     try {
-      updateLockFiles(pkg.name);
-
-      await publishToRegistry(pkg, 'http://npm.dev.wixpress.com/');
-      if (!isScoped(bkp.name)) {
-        await publishToRegistry(pkg, 'https://registry.npmjs.org/');
-      } else if (bkp.publishUnscoped !== false) {
-        await publishUnscopedPackage(bkp);
+      if (isScoped(pkg.name)) {
+        //publish to second registry since main publish already published to the first
+        if (isWixRegistry(pkg.publishConfig.registry)) {
+          await publishToRegistry(pkg.name, 'https://registry.npmjs.org/');
+        } else {
+          await publishToRegistry(pkg.name, 'http://npm.dev.wixpress.com/');
+        }
+        const unscopedName = pkg.name.replace('@wix/', '');
+        if (pkg.publishUnscoped !== false && verifyWixPackage(unscopedName)) {
+          await publishToRegistry(unscopedName, 'http://npm.dev.wixpress.com/');
+        }
+        grantPermissions(pkg.name);
+      } else {
+        const scopedName = `@wix/${pkg.name}`;
+        await publishToRegistry(scopedName, 'https://registry.npmjs.org/');
+        await publishToRegistry(scopedName, 'http://npm.dev.wixpress.com/');
+        grantPermissions(scopedName);
       }
-
-      console.log('Granting access to "readonly" group to access', pkg.name);
-      run(
-        'npm access grant read-write wix:publishers ' +
-          pkg.name +
-          ' --@wix:registry=https://registry.npmjs.org/'
-      );
-      run(
-        'npm access grant read-only wix:developers ' +
-          pkg.name +
-          ' --@wix:registry=https://registry.npmjs.org/'
-      );
-
-      updateLockFiles(bkp.name);
-      writeJsonFile('package.json', bkp);
-      unlinkSync('.npmrc');
+      restore();
     } catch (error) {
       console.log('Failed to publish a scoped package, cause:', error);
-      updateLockFiles(bkp.name);
-      writeJsonFile('package.json', bkp);
-      unlinkSync('.npmrc');
+      restore();
       process.exit(1);
     }
   } else {
