@@ -9,9 +9,9 @@ const LATEST_TAG = 'latest';
 const NEXT_TAG = 'next';
 const OLD_TAG = 'old';
 
-function getPackageInfo() {
+function getPackageInfo(registry) {
   try {
-    return JSON.parse(execSync(`npm show --json`, {stdio: 'pipe'}).toString());
+    return JSON.parse(execSync(`npm show --json --registry ${registry}`, {stdio: 'pipe'}).toString());
   } catch (error) {
     if (error.stderr.toString().includes('npm ERR! code E404')) {
       console.error(chalk.yellow('\nWarning: package not found. Going to publish for the first time'));
@@ -57,7 +57,7 @@ async function execPublish(info, version, flags) {
 export async function publish(flags = '') {
   const pkg = readJsonFile('package.json');
   const registry = get(pkg, 'publishConfig.registry', DEFAULT_REGISTRY);
-  const info = getPackageInfo();
+  const info = getPackageInfo(registry);
   const {name, version} = pkg;
 
   console.log(`Starting the release process for ${chalk.bold(name)}\n`);

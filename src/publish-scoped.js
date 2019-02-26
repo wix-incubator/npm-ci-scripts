@@ -1,15 +1,12 @@
 import {publish} from './publish';
 import {execSync} from 'child_process';
-import {writeFileSync, unlinkSync} from 'fs';
 import {writeJsonFile, readJsonFile, fileExists} from './utils';
 
 function publishToRegistry(name, to) {
   const pkg = readJsonFile('package.json');
   pkg.name = name;
   pkg.publishConfig.registry = to;
-  pkg.publishConfig['@wix:registry'] = to;
   writeJsonFile('package.json', pkg);
-  writeFileSync('.npmrc', `@wix:registry=${to}`);
   updateLockFiles(name);
   console.log('Publishing', pkg.name, 'to', to);
   return publish('--ignore-scripts');
@@ -97,7 +94,6 @@ export async function publishScoped() {
   const restore = (bkp => () => {
     updateLockFiles(bkp.name);
     writeJsonFile('package.json', bkp);
-    unlinkSync('.npmrc');
   })(readJsonFile('package.json'));
 
   const result = validate(pkg);

@@ -1,6 +1,6 @@
 import {publish} from '../src/publish';
 import {publishScoped} from '../src/publish-scoped';
-import {logBlockOpen, logBlockClose, execCommand, readJsonFile} from '../src/utils';
+import {logBlockOpen, logBlockClose, execCommand, readJsonFile, writeJsonFile} from '../src/utils';
 
 execCommand('npm run release --if-present');
 
@@ -21,5 +21,9 @@ if (pkg.private) {
   console.log('Skipping publish (probably no change in tarball)');
   console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`);
 } else {
+  if (pkg.name.indexOf('@wix/') === 0) {
+    pkg.publishConfig = {registry: 'https://registry.npmjs.org/'};
+    writeJsonFile('package.json', pkg);
+  }
   runPublish();
 }
