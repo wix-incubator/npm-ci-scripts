@@ -1,7 +1,6 @@
 import {writeFileSync, readFileSync, statSync, createReadStream} from 'fs';
 import {execSync, exec} from 'child_process';
 import request from 'request';
-import zlib from 'zlib';
 
 export function logBlockOpen(log) {
   console.log('##teamcity[blockOpened name=\'' + log + '\']');
@@ -51,11 +50,41 @@ export function readJsonFile(name) {
   return JSON.parse(readFileSync(name, 'utf8'));
 }
 
-function readCompressedToBuffer(path) {
+function sendMessageToSlack(msg) {
+  if (!process.env.NPM_CI_SLACK_TOKEN) {
+    return Promise.reject(new Error('Unable to send message to slack because env NPM_CI_SLACK_TOKEN is not set'));
+  }
+
   return new Promise((resolve, reject) => {
-    const gzipStream = createReadStream(path).pipe(zlib.createGzip({
-      level: zlib.constants.Z_BEST_COMPRESSION
-    }));
+    request.post({
+      url: 'https://slack.com/api/chat.postMessage',
+      headers: {
+        Authorization: `Bearer ${process.env.NPM_CI_SLACK_TOKEN}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json; charset=utf-8'
+      },
+      body: JSON.stringify({
+        channel: 'CFM2ER0DU',
+        text: msg
+      }),
+    }, (err, response) => {
+      if (err) {
+        return reject(err);
+      }
+
+      try {
+        const body = JSON.parse(response.body);
+        resolve(body);
+      } catch (ex) {
+        reject(ex);
+      }
+    });
+  });
+}
+
+function streamToBuffer(path) {
+  return new Promise((resolve, reject) => {
+    const gzipStream = createReadStream(path);
     const buffers = [];
 
     gzipStream.on('data', data => {
@@ -75,23 +104,29 @@ function sendFileToSlack(path, title, filename) {
     return Promise.reject(new Error('Unable to send file to slack because env NPM_CI_SLACK_TOKEN is not set'));
   }
 
-  console.log(`Sending ${path} as "${title}" - ${filename}.gz`);
+  console.log(`Sending ${path} as "${title}" - ${filename}`);
 
-  return readCompressedToBuffer(path).then(compressedFile => {
+  return streamToBuffer(path).then(fileData => {
+    const npmLogErrorMsgRegex = /\d+ error (.*)\n\d+ verbose exit/gm;
+    const fileDataString = fileData.toString();
+    const errorMessageMatch = npmLogErrorMsgRegex.exec(fileDataString);
+
+    if (errorMessageMatch) {
+      const errorMessage = errorMessageMatch[1];
+      sendMessageToSlack(`Error: ${errorMessage} in ${title} - ${filename}`);
+    } else {
+      console.log(`Could not locate error message in ${filename}`);
+    }
+
     return new Promise((resolve, reject) => {
       request.post({
         url: 'https://slack.com/api/files.upload',
-        formData: {
+        form: {
           token: process.env.NPM_CI_SLACK_TOKEN,
           title,
           channels: 'CFM2ER0DU',
-          file: {
-            value: compressedFile,
-            options: {
-              filename: filename + '.gz',
-              contentType: 'application/octet-stream',
-            }
-          }
+          content: fileDataString,
+          filetype: 'text'
         },
       }, (err, response) => {
         if (err) {
@@ -109,7 +144,6 @@ function sendFileToSlack(path, title, filename) {
   });
 }
 
-const npmLogPathRegex = /(\/.+\d{4}-\d{2}-\d{2}T\d{2}_\d{2}_\d{2}_\d{1,3}Z-debug\.log)/g;
 const TEN_MEGABYTES = 10 * 1024 * 1024;
 export function execCommandAsync(cmd, log, retries, retryCmd) {
   return new Promise((resolve, reject) => {
@@ -118,6 +152,7 @@ export function execCommandAsync(cmd, log, retries, retryCmd) {
     const childProcess = exec(cmd, {stdio: 'pipe', maxBuffer: TEN_MEGABYTES}, async (error, _, stderr) => {
       logBlockClose(log);
       if (error) {
+        const npmLogPathRegex = /(\/.+\d{4}-\d{2}-\d{2}T\d{2}_\d{2}_\d{2}_\d{1,3}Z-debug\.log)/g;
         const match = npmLogPathRegex.exec(stderr.toString());
         if (match) {
           const logPath = match[0];
