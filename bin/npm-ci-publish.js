@@ -1,17 +1,8 @@
 import {publish} from '../src/publish';
-import {writeFileSync, unlinkSync} from 'fs';
 import {publishScoped} from '../src/publish-scoped';
-import {fileExists, logBlockOpen, logBlockClose, execCommand, readJsonFile} from '../src/utils';
+import {logBlockOpen, logBlockClose, execCommand, readJsonFile} from '../src/utils';
 
-let unlinkWhenDone = false;
-if (!fileExists('.npmrc')) {
-  writeFileSync('.npmrc', '@wix:registry=http://npm.dev.wixpress.com');
-  unlinkWhenDone = true;
-}
 execCommand('npm run release --if-present');
-if (unlinkWhenDone) {
-  unlinkSync('.npmrc');
-}
 
 async function runPublish() {
   logBlockOpen('npm publish');
