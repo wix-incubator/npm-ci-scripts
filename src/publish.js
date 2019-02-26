@@ -11,7 +11,7 @@ const OLD_TAG = 'old';
 
 function getPackageInfo(registry) {
   try {
-    return JSON.parse(execSync(`npm show --json --registry ${registry}`, {stdio: 'pipe'}).toString());
+    return JSON.parse(execSync(`npm show --json --registry=${registry}`, {stdio: 'pipe'}).toString());
   } catch (error) {
     if (error.stderr.toString().includes('npm ERR! code E404')) {
       console.error(chalk.yellow('\nWarning: package not found. Going to publish for the first time'));
