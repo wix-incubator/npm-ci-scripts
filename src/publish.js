@@ -11,6 +11,7 @@ const OLD_TAG = 'old';
 
 function getPackageInfo(registry) {
   try {
+    console.log(`Getting package info from ${registry}`);
     return JSON.parse(execSync(`npm show --json --registry=${registry} --@wix:registry=${registry}`, {stdio: 'pipe'}).toString());
   } catch (error) {
     if (error.stderr.toString().includes('npm ERR! code E404')) {
@@ -23,7 +24,9 @@ function getPackageInfo(registry) {
 
 function shouldPublishPackage(info, version) {
   const remoteVersionsList = info.versions || [];
-  return remoteVersionsList.indexOf(version) === -1;
+  const isVersionExists = remoteVersionsList.indexOf(version) > -1;
+  console.log(`version ${version} ${isVersionExists ? 'exists' : 'does not exists'} on remote`);
+  return !isVersionExists;
 }
 
 function getTag(info, version) {
