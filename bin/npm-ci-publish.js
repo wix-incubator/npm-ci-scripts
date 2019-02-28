@@ -50,7 +50,7 @@ execCommandAsync('npm run release --if-present').then(({stdio}) => {
   }
 
   // eslint-disable-next-line no-div-regex
-  const npmPublishRegex = /=== Tarball Details ===[\s\\n]+.*name:\s+([^\s]+)[\s\\n]*.*version:\s+([^\s]+)/gm;
+  const npmPublishRegex = /[\s\S]*?npm publish[\s\S]*?=== Tarball Details ===[\s\\n]+.*name:\s+([^\s]+)[\s\\n]*.*version:\s+([^\s]+)/gm;
   const stdoutString = stdio.stdout.toString();
   let stdOutMatch;
   let skipPublish = false;
