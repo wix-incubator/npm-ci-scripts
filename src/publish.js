@@ -46,7 +46,7 @@ async function execPublish(info, version, flags) {
   const publishCommand = `npm publish --tag=${getTag(info, version)} ${flags}`.trim();
   console.log(chalk.magenta(`Running: "${publishCommand}" for ${info.name}@${version}`));
   try {
-    await execCommandAsync(publishCommand);
+    await execCommandAsync(publishCommand, null, null, null, true);
     return 'success';
   } catch (ex) {
     if (ex.stdio) {
