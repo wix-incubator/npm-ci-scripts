@@ -55,7 +55,7 @@ execCommandAsync('npm run release --if-present').then(({stdio}) => {
   let stdOutMatch;
   let skipPublish = false;
   while (stdOutMatch = npmPublishRegex.exec(stdoutString)) { // eslint-disable-line no-cond-assign
-    const [pkgName, pkgVersion] = stdOutMatch;
+    const [_, pkgName, pkgVersion] = stdOutMatch;
     console.log(`Seems like 'release' command published a package ${pkgName} ${pkgVersion}`);
     skipPublish = true;
   }
