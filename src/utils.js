@@ -149,7 +149,7 @@ export function execCommandAsync(cmd, log, retries, retryCmd) {
   return new Promise((resolve, reject) => {
     log = log || cmd;
     logBlockOpen(log);
-    const childProcess = exec(cmd, {stdio: 'pipe', maxBuffer: TEN_MEGABYTES}, async (error, _, stderr) => {
+    const childProcess = exec(cmd, {stdio: 'pipe', maxBuffer: TEN_MEGABYTES}, async (error, stdout, stderr) => {
       logBlockClose(log);
       if (error) {
         const npmLogPathRegex = /(\/.+\d{4}-\d{2}-\d{2}T\d{2}_\d{2}_\d{2}_\d{1,3}Z-debug\.log)/g;
@@ -185,7 +185,12 @@ export function execCommandAsync(cmd, log, retries, retryCmd) {
         return reject(error);
       }
 
-      resolve();
+      resolve({
+        stdio: {
+          stderr,
+          stdout
+        }
+      });
     });
 
     console.log('running:', cmd);
