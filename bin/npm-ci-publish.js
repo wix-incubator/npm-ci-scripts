@@ -43,7 +43,9 @@ execCommandAsync('npm run release --if-present').then(({stdio}) => {
     unlinkSync('.npmrc');
   }
   pkg = readJsonFile('package.json');
-  if (pkg.private && previousVersion !== pkg.version) {
+  if (pkg.release && pkg.release.indexOf('mltci') > -1) {
+    console.log('Detected release mltci, it might publish, so skipping publishing myself');
+  } else if (pkg.private && previousVersion !== pkg.version) {
     console.log('forcing republish in order to sync versions');
     delete pkg.private;
     writeJsonFile('package.json', pkg);
