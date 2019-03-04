@@ -39,16 +39,6 @@ if (pkg.name.indexOf('@wix/') === 0) {
 }
 
 execCommandAsync('npm run release --if-present').then(({stdio}) => {
-  if (shouldUnlink) {
-    unlinkSync('.npmrc');
-  }
-  pkg = readJsonFile('package.json');
-  if (pkg.private && previousVersion !== pkg.version) {
-    console.log('forcing republish in order to sync versions');
-    delete pkg.private;
-    writeJsonFile('package.json', pkg);
-  }
-
   // eslint-disable-next-line no-div-regex
   const npmPublishRegex = /[\s\S]*?npm publish[\s\S]*?=== Tarball Details ===[\s\\n]+.*name:\s+([^\s]+)[\s\\n]*.*version:\s+([^\s]+)/gm;
   const stdoutString = stdio.stdout.toString();
@@ -58,6 +48,16 @@ execCommandAsync('npm run release --if-present').then(({stdio}) => {
     const [_, pkgName, pkgVersion] = stdOutMatch;
     console.log(`Seems like 'release' command published a package ${pkgName} ${pkgVersion}`);
     skipPublish = true;
+  }
+
+  if (shouldUnlink) {
+    unlinkSync('.npmrc');
+  }
+  pkg = readJsonFile('package.json');
+  if (!skipPublish && pkg.private && previousVersion !== pkg.version) {
+    console.log('forcing republish in order to sync versions');
+    delete pkg.private;
+    writeJsonFile('package.json', pkg);
   }
 
   if (pkg.private || skipPublish) {
