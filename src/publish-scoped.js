@@ -109,7 +109,6 @@ export async function publishScoped() {
       if (pkg.publishUnscoped !== false && verifyWixPackage(unscopedName)) {
         await publishToRegistry(unscopedName, 'http://npm.dev.wixpress.com/');
       }
-      grantPermissions(unscopedName);
       restore();
     } catch (error) {
       console.log('Failed to publish a scoped package, cause:', error);
