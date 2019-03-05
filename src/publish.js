@@ -62,13 +62,16 @@ export async function publish(flags = '') {
   const {name, version} = pkg;
 
   console.log(`Starting the release process for ${chalk.bold(name)}\n`);
-
-  if (!shouldPublishPackage(info, version)) {
+  // package already published in a different flow in this process
+  if (process.env[`${registry}|${name}|${version}`] === 'true') {
+    console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published: ${name}@${version}']`);
+  } else if (!shouldPublishPackage(info, version)) {
     console.log(chalk.blue(`${name}@${version} already exists on registry ${registry}`));
     console.log('\nNo publish performed');
     console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`);
   } else {
     await execPublish(info, version, flags + ` --registry=${registry} --@wix:registry=${registry}`);
+    process.env[`${registry}|${name}|${version}`] = 'true';
     console.log(chalk.green(`\nPublish "${name}@${version}" successfully to ${registry}`));
     console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published: ${name}@${version}']`);
   }
