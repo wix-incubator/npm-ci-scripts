@@ -100,12 +100,9 @@ export async function publishScoped() {
   if (result === true) {
     try {
       if (isScoped(pkg.name)) {
-        //publish to second registry since main publish already published to the first
-        if (isWixRegistry(pkg.publishConfig.registry)) {
-          await publishToRegistry(pkg.name, 'https://registry.npmjs.org/');
-        } else {
-          await publishToRegistry(pkg.name, 'http://npm.dev.wixpress.com/');
-        }
+        await publishToRegistry(pkg.name, 'http://npm.dev.wixpress.com/');
+        await publishToRegistry(pkg.name, 'https://registry.npmjs.org/');
+
         const unscopedName = pkg.name.replace('@wix/', '');
         if (pkg.publishUnscoped !== false && verifyWixPackage(unscopedName)) {
           await publishToRegistry(unscopedName, 'http://npm.dev.wixpress.com/');
@@ -113,8 +110,8 @@ export async function publishScoped() {
         grantPermissions(pkg.name);
       } else {
         const scopedName = `@wix/${pkg.name}`;
-        await publishToRegistry(scopedName, 'https://registry.npmjs.org/');
         await publishToRegistry(scopedName, 'http://npm.dev.wixpress.com/');
+        await publishToRegistry(scopedName, 'https://registry.npmjs.org/');
         grantPermissions(scopedName);
       }
       restore();
