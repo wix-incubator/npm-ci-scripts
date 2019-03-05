@@ -99,21 +99,17 @@ export async function publishScoped() {
   const result = validate(pkg);
   if (result === true) {
     try {
-      if (isScoped(pkg.name)) {
-        await publishToRegistry(pkg.name, 'http://npm.dev.wixpress.com/');
-        await publishToRegistry(pkg.name, 'https://registry.npmjs.org/');
+      const scopedName = isScoped(pkg.name) ? pkg.name : `@wix/${pkg.name}`;
+      const unscopedName = pkg.name.replace('@wix/', '');
 
-        const unscopedName = pkg.name.replace('@wix/', '');
-        if (pkg.publishUnscoped !== false && verifyWixPackage(unscopedName)) {
-          await publishToRegistry(unscopedName, 'http://npm.dev.wixpress.com/');
-        }
-        grantPermissions(pkg.name);
-      } else {
-        const scopedName = `@wix/${pkg.name}`;
-        await publishToRegistry(scopedName, 'http://npm.dev.wixpress.com/');
-        await publishToRegistry(scopedName, 'https://registry.npmjs.org/');
-        grantPermissions(scopedName);
+      await publishToRegistry(scopedName, 'http://npm.dev.wixpress.com/');
+      await publishToRegistry(scopedName, 'https://registry.npmjs.org/');
+      grantPermissions(scopedName);
+
+      if (pkg.publishUnscoped !== false && verifyWixPackage(unscopedName)) {
+        await publishToRegistry(unscopedName, 'http://npm.dev.wixpress.com/');
       }
+      grantPermissions(unscopedName);
       restore();
     } catch (error) {
       console.log('Failed to publish a scoped package, cause:', error);

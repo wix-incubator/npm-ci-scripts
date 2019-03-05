@@ -13,17 +13,15 @@ function latest(registry) {
   }
 }
 
-async function runPublish(pkg) {
-  const registry = pkg.publishConfig && pkg.publishConfig.registry;
+async function runPublish() {
   if (process.env.PUBLISH_SCOPED) {
     logBlockOpen('npm publish to wix scope');
     await publishScoped();
     logBlockClose('npm publish to wix scope');
-  } else if ((registry !== 'http://npm.dev.wixpress.com/' && registry !== 'https://registry.npmjs.org/') || pkg.name.indexOf('@wix/') === -1) {
-    logBlockOpen('npm publish');
-    await publish();
-    logBlockClose('npm publish');
   }
+  logBlockOpen('npm publish');
+  await publish();
+  logBlockClose('npm publish');
 }
 
 let pkg = readJsonFile('package.json');
@@ -68,6 +66,6 @@ execCommandAsync('npm run release --if-present').then(({stdio}) => {
     console.log('Skipping publish (probably no change in tarball)');
     console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`);
   } else {
-    runPublish(pkg);
+    runPublish();
   }
 });
