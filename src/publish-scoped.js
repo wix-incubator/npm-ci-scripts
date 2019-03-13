@@ -99,15 +99,23 @@ export async function publishScoped() {
   const result = validate(pkg);
   if (result === true) {
     try {
-      const scopedName = isScoped(pkg.name) ? pkg.name : `@wix/${pkg.name}`;
-      const unscopedName = pkg.name.replace('@wix/', '');
-
-      await publishToRegistry(scopedName, 'http://npm.dev.wixpress.com/');
-      await publishToRegistry(scopedName, 'https://registry.npmjs.org/');
-      grantPermissions(scopedName);
-
-      if (pkg.publishUnscoped !== false && verifyWixPackage(unscopedName)) {
-        await publishToRegistry(unscopedName, 'http://npm.dev.wixpress.com/');
+      if (isScoped(pkg.name)) {
+        //publish to second registry since main publish already published to the first
+        if (isWixRegistry(pkg.publishConfig.registry)) {
+          await publishToRegistry(pkg.name, 'https://registry.npmjs.org/');
+        } else {
+          await publishToRegistry(pkg.name, 'http://npm.dev.wixpress.com/');
+        }
+        const unscopedName = pkg.name.replace('@wix/', '');
+        if (pkg.publishUnscoped !== false && verifyWixPackage(unscopedName)) {
+          await publishToRegistry(unscopedName, 'http://npm.dev.wixpress.com/');
+        }
+        grantPermissions(pkg.name);
+      } else {
+        const scopedName = `@wix/${pkg.name}`;
+        await publishToRegistry(scopedName, 'https://registry.npmjs.org/');
+        await publishToRegistry(scopedName, 'http://npm.dev.wixpress.com/');
+        grantPermissions(scopedName);
       }
       restore();
     } catch (error) {

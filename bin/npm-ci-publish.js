@@ -14,14 +14,15 @@ function latest(registry) {
 }
 
 async function runPublish() {
+  logBlockOpen('npm publish');
+  await publish();
+  logBlockClose('npm publish');
+
   if (process.env.PUBLISH_SCOPED) {
     logBlockOpen('npm publish to wix scope');
     await publishScoped();
     logBlockClose('npm publish to wix scope');
   }
-  logBlockOpen('npm publish');
-  await publish();
-  logBlockClose('npm publish');
 }
 
 let pkg = readJsonFile('package.json');
