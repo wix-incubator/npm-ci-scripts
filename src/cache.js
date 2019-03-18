@@ -1,4 +1,4 @@
-const {readFileSync, createReadStream} = require('fs');
+const {readFileSync, createReadStream, existsSync} = require('fs');
 const tar = require('tar');
 const AWS = require('aws-sdk');
 const {sync: globbySync} = require('globby');
@@ -25,6 +25,11 @@ export async function extractCache() {
 }
 
 export async function saveCache() {
+  if (!existsSync('.ci_config')) {
+    console.log('No .ci_config file found. Skipping cache creation.');
+    return;
+  }
+
   const ciConfig = JSON.parse(readFileSync('.ci_config', 'utf8'));
 
   if (!ciConfig.cache) {
