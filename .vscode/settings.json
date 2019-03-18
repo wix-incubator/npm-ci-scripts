@@ -35,5 +35,10 @@
   "html.format.extraLiners": "",
   "files.insertFinalNewline": true,
   "eslint.autoFixOnSave": true,
-  "tslint.autoFixOnSave": true
+  "tslint.autoFixOnSave": true,
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#620208",
+    "titleBar.activeBackground": "#89030B",
+    "titleBar.activeForeground": "#FFFBFC"
+  }
 }
