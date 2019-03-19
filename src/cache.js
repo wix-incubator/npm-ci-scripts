@@ -6,15 +6,27 @@ const tempy = require('tempy');
 
 AWS.config.credentials = new AWS.SharedIniFileCredentials({profile: 'automation-aws'});
 
-const CI_CACHE_BUCKET = `ci-cache`;
-const cacheKey = process.env.NPM_CI_CACHE_KEY || `${process.env.system.repo.owner}__${process.env.system.repo}__${process.env.BRANCH}`;
+const cacheKey = process.env.NPM_CI_CACHE_KEY || `${process.env.TEAMCITY_PROJECT_NAME}__${process.env.BRANCH}`;
 
 const s3Client = new AWS.S3();
 
+function getCICacheBucket(ciConfig) {
+  const ciConfigBucketName = ciConfig.cache && ciConfig.cache.bucket;
+
+  return process.env.NPM_CI_CACHE_BUCKET || ciConfigBucketName || `ci-cache`;
+}
+
 export async function extractCache() {
+  if (!existsSync('.ci_config')) {
+    console.log('No .ci_config file found. Skipping cache extraction.');
+    return;
+  }
+
+  const ciConfig = JSON.parse(readFileSync('.ci_config', 'utf8'));
+
   console.log(`Starting to download and extract cache with key ${cacheKey}...`);
   s3Client.getObject({
-    Bucket: CI_CACHE_BUCKET,
+    Bucket: getCICacheBucket(ciConfig),
     Key: cacheKey
   }).createReadStream()
     .pipe(tar.extract({}))
@@ -60,7 +72,7 @@ export async function saveCache() {
     console.log(`Uploading cache to S3 under key ${cacheKey}...`);
     s3Client.upload({
       Body: createReadStream(tempFile),
-      Bucket: CI_CACHE_BUCKET,
+      Bucket: getCICacheBucket(ciConfig),
       Key: cacheKey
     }, err => {
       if (err) {
