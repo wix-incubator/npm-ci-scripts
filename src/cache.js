@@ -8,7 +8,8 @@ AWS.config.credentials = process.env.NPM_CI_AWS_ACCESS_KEY ?
   new AWS.Credentials(process.env.NPM_CI_AWS_ACCESS_KEY, process.env.NPM_CI_AWS_SECRET_ACCESS_KEY) :
   new AWS.SharedIniFileCredentials({profile: 'automation-aws'});
 
-const cacheKey = process.env.NPM_CI_CACHE_KEY || `${process.env.TEAMCITY_PROJECT_NAME}__${process.env.BRANCH}`;
+console.log(process.env.TEAMCITY_PROJECT_NAME, process.env.NPM_CI_CACHE_KEY, process.env.BRANCH);
+const cacheKey = `${process.env.TEAMCITY_PROJECT_NAME}/${process.env.NPM_CI_CACHE_KEY || process.env.BRANCH}`;
 
 const s3Client = new AWS.S3();
 
@@ -68,8 +69,6 @@ export async function saveCache() {
       file: tempFile
     }, pathsToCache);
     console.log('Cache file created.');
-
-    const cacheKey = process.env.NPM_CI_CACHE_KEY;
 
     console.log(`Uploading cache to S3 under key ${cacheKey}...`);
     s3Client.upload({
