@@ -6,7 +6,7 @@ const tempy = require('tempy');
 
 AWS.config.credentials = process.env.NPM_CI_AWS_ACCESS_KEY ?
   new AWS.Credentials(process.env.NPM_CI_AWS_ACCESS_KEY, process.env.NPM_CI_AWS_SECRET_ACCESS_KEY) :
-  new AWS.SharedIniFileCredentials({profile: 'automation-aws'});
+  new AWS.SharedIniFileCredentials({profile: process.env.NPM_CI_AWS_CREDENTIALS_PROFILE});
 
 const cacheKey = `${process.env.TEAMCITY_PROJECT_NAME}/${process.env.NPM_CI_CACHE_KEY || process.env.BRANCH}`;
 
