@@ -199,3 +199,7 @@ export function execCommandAsync(cmd, log, retries, retryCmd) {
     childProcess.stdout.pipe(process.stdout);
   });
 }
+
+export function getCurrentProjectUniqueIdentifier() {
+  return process.env.TEAMCITY_PROJECT_NAME;
+}
