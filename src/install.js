@@ -1,5 +1,5 @@
 import {execSync} from 'child_process';
-import {fileExists, execCommand, execCommandAsync} from './utils';
+import {fileExists, execCommand, execCommandAsync, readJsonFile} from './utils';
 
 function npmVersion() {
   return parseFloat(execSync('npm --version | cut -d. -f1,2').toString());
@@ -22,6 +22,8 @@ export async function install() {
     } else {
       await npmInstallExec('npm install');
     }
+  } else if (fileExists('.ci_config') && readJsonFile('.ci_config').cache) {
+    await npmInstallExec('npm update --no-save --depth 9999');
   } else {
     await npmInstallExec('npm install --no-package-lock');
   }
