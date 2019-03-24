@@ -15,7 +15,7 @@ const s3Client = new AWS.S3();
 function getCICacheBucket(ciConfig) {
   const ciConfigBucketName = ciConfig.cache && ciConfig.cache.bucket;
 
-  return process.env.NPM_CI_CACHE_BUCKET || ciConfigBucketName || `ci-cache`;
+  return process.env.NPM_CI_CACHE_BUCKET || ciConfigBucketName || `wix-cache-ci`;
 }
 
 export function extractCache() {
