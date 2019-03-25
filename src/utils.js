@@ -1,6 +1,10 @@
 import {writeFileSync, readFileSync, statSync, createReadStream} from 'fs';
 import {execSync, exec} from 'child_process';
 import request from 'request';
+import tar from 'tar';
+import {createHash} from 'crypto';
+import {resolve as pathResolve} from 'path';
+import {Credentials, SharedIniFileCredentials} from 'aws-sdk';
 
 export function logBlockOpen(log) {
   console.log('##teamcity[blockOpened name=\'' + log + '\']');
@@ -202,4 +206,33 @@ export function execCommandAsync(cmd, log, retries, retryCmd) {
 
 export function getCurrentProjectUniqueIdentifier() {
   return process.env.ARTIFACT_ID;
+}
+
+export function getHashForCWD() {
+  return new Promise(resolve => {
+    const tarStream = tar.create(
+      {
+        portable: true,
+        noMtime: true,
+        filter: path => pathResolve(path) !== pathResolve('.git')
+      },
+      ['.']
+    );
+
+    const hash = createHash('sha256');
+    hash.setEncoding('hex');
+
+    tarStream.on('end', () => {
+      hash.end();
+      resolve(hash.read());
+    });
+
+    tarStream.pipe(hash);
+  });
+}
+
+export function getAWSCredentials() {
+  return process.env.NPM_CI_AWS_ACCESS_KEY ?
+    new Credentials(process.env.NPM_CI_AWS_ACCESS_KEY, process.env.NPM_CI_AWS_SECRET_ACCESS_KEY) :
+    new SharedIniFileCredentials({profile: process.env.NPM_CI_AWS_CREDENTIALS_PROFILE});
 }
