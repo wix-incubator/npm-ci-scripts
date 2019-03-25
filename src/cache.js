@@ -1,17 +1,15 @@
 import {readFileSync, createReadStream, existsSync} from 'fs';
 import tar from 'tar';
-import AWS from 'aws-sdk';
+import {S3} from 'aws-sdk';
 import {sync as globbySync} from 'globby';
 import tempy from 'tempy';
-import {getCurrentProjectUniqueIdentifier} from './utils';
-
-AWS.config.credentials = process.env.NPM_CI_AWS_ACCESS_KEY ?
-  new AWS.Credentials(process.env.NPM_CI_AWS_ACCESS_KEY, process.env.NPM_CI_AWS_SECRET_ACCESS_KEY) :
-  new AWS.SharedIniFileCredentials({profile: process.env.NPM_CI_AWS_CREDENTIALS_PROFILE});
+import {getAWSCredentials, getCurrentProjectUniqueIdentifier} from './utils';
 
 const cacheKey = `${getCurrentProjectUniqueIdentifier()}/${process.env.NPM_CI_CACHE_KEY || process.env.BRANCH}`;
 
-const s3Client = new AWS.S3();
+const s3Client = new S3({
+  credentials: getAWSCredentials()
+});
 
 function getCICacheBucket(ciConfig) {
   const ciConfigBucketName = ciConfig.cache && ciConfig.cache.bucket;
