@@ -201,5 +201,5 @@ export function execCommandAsync(cmd, log, retries, retryCmd) {
 }
 
 export function getCurrentProjectUniqueIdentifier() {
-  return process.env.TEAMCITY_PROJECT_NAME;
+  return process.env.ARTIFACT_ID;
 }
