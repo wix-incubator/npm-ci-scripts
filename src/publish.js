@@ -45,11 +45,24 @@ function getTag(info, version) {
 async function execPublish(info, version, flags) {
   const publishCommand = `npm publish --tag=${getTag(info, version)} ${flags}`.trim();
   console.log(chalk.magenta(`Running: "${publishCommand}" for ${info.name}@${version}`));
-  return execCommandAsync(publishCommand);
+  try {
+    await execCommandAsync(publishCommand, null, null, null, true);
+    return 'success';
+  } catch (ex) {
+    if (ex.stdio) {
+      const versionExistsString = 'cannot modify pre-existing version';
+      if ((ex.stdio.stderr && ex.stdio.stderr.toString().indexOf(versionExistsString) > -1) ||
+          (ex.stdio.stdout && ex.stdio.stdout.toString().indexOf(versionExistsString) > -1)) {
+        return 'version_exists';
+      }
+    }
+    return 'failure';
+  }
 }
 
 // 1. verify that the package can be published by checking the registry.
 //   (Can only publish versions that doesn't already exist)
+//    if version was published shortly before us, artifactory might still return old metadata
 // 2. choose a tag ->
 // * `old` for a release that is less than latest (semver).
 // * `next` for a prerelease (beta/alpha/rc).
@@ -68,8 +81,16 @@ export async function publish(flags = '') {
     console.log('\nNo publish performed');
     console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`);
   } else {
-    await execPublish(info, version, flags + ` --registry=${registry} --@wix:registry=${registry}`);
-    console.log(chalk.green(`\nPublish "${name}@${version}" successfully to ${registry}`));
-    console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published: ${name}@${version}']`);
+    const result = await execPublish(info, version, flags + ` --registry=${registry} --@wix:registry=${registry}`);
+    if (result === 'success') {
+      console.log(chalk.green(`\nPublish "${name}@${version}" successfully to ${registry}`));
+      console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published: ${name}@${version}']`);
+    } else if (result === 'version_exists') {
+      console.log(chalk.green(`\nPublish "${name}@${version}" failed to ${registry}, version exists.`));
+      console.log(`##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`);
+    } else {
+      console.log(chalk.green(`\nPublish "${name}@${version}" failed to ${registry}`));
+      console.log(`##teamcity[buildStatus status='FAILURE' text='{build.status.text}; Publish failed']`);
+    }
   }
 }

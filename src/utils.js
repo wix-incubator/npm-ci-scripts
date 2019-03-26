@@ -149,7 +149,8 @@ function sendFileToSlack(path, title, filename) {
 }
 
 const TEN_MEGABYTES = 10 * 1024 * 1024;
-export function execCommandAsync(cmd, log, retries, retryCmd) {
+// eslint-disable-next-line max-params
+export function execCommandAsync(cmd, log, retries, retryCmd, dontTerminate) {
   return new Promise((resolve, reject) => {
     log = log || cmd;
     logBlockOpen(log);
@@ -185,7 +186,16 @@ export function execCommandAsync(cmd, log, retries, retryCmd) {
             .catch(reject);
         }
 
-        process.exit(error.code || 1);
+        if (!dontTerminate) {
+          process.exit(error.code || 1);
+        }
+
+        // Enrich the error with stdio
+        error.stdio = {
+          stdout,
+          stderr
+        };
+
         return reject(error);
       }
 
