@@ -1,7 +1,8 @@
-import {checkRunResult} from '../src/run-results';
+import { checkRunResult } from '../src/run-results';
 
 const program = require('commander');
 
+// eslint-disable-next-line
 program.version(require('../../package').version)
   .usage('hash command')
   .parse(process.argv);

@@ -1,8 +1,9 @@
-import {saveSuccessfulRun} from '../src/run-results';
+import { saveSuccessfulRun } from '../src/run-results';
 
 const program = require('commander');
 
-program.version(require('../../package').version)
+program
+  .version(require('../../package').version) // eslint-disable-line
   .usage('hash command')
   .parse(process.argv);
 

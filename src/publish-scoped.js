@@ -1,6 +1,6 @@
-import {publish} from './publish';
-import {execSync} from 'child_process';
-import {writeJsonFile, readJsonFile, fileExists} from './utils';
+import { publish } from './publish';
+import { execSync } from 'child_process';
+import { writeJsonFile, readJsonFile, fileExists } from './utils';
 
 function publishToRegistry(name, to) {
   const pkg = readJsonFile('package.json');
@@ -18,7 +18,10 @@ function validate(pkg) {
       return 'package uses unsupported scope: ' + pkg.name;
     }
   } else if (!isWixRegistry(pkg.publishConfig.registry)) {
-    return 'package is being published outside wix registry: ' + pkg.publishConfig.registry;
+    return (
+      'package is being published outside wix registry: ' +
+      pkg.publishConfig.registry
+    );
   }
   if (pkg.publishScoped === false || fileExists('publish-scoped.ignore')) {
     return 'developer switched a feature off';
@@ -69,14 +72,17 @@ function verifyWixPackage(packageName) {
   try {
     const result = execSync(
       `npm view --registry=http://npm.dev.wixpress.com ${packageName} publishConfig.registry`,
-      {stdio: 'pipe'}
+      { stdio: 'pipe' },
     ).toString();
     return isWixRegistry(result);
   } catch (error) {
     if (error.stderr.toString().includes('npm ERR! code E404')) {
       console.log(`Package ${packageName} not found in registry. aborting.`);
     } else {
-      console.error(`An error occured while looking for ${packageName} in Wix's registry:`, error);
+      console.error(
+        `An error occured while looking for ${packageName} in Wix's registry:`,
+        error,
+      );
     }
     return false;
   }
@@ -85,8 +91,12 @@ function verifyWixPackage(packageName) {
 function grantPermissions(name) {
   const options = '--@wix:registry=https://registry.npmjs.org/';
   console.log('Granting access to "readonly" group to access', name);
-  execSync(`npm access grant read-write wix:publishers ${name} ${options}`, {stdio: 'inherit'});
-  execSync(`npm access grant read-only wix:developers ${name} ${options}`, {stdio: 'inherit'});
+  execSync(`npm access grant read-write wix:publishers ${name} ${options}`, {
+    stdio: 'inherit',
+  });
+  execSync(`npm access grant read-only wix:developers ${name} ${options}`, {
+    stdio: 'inherit',
+  });
 }
 
 export async function publishScoped() {
@@ -124,6 +134,9 @@ export async function publishScoped() {
       process.exit(1);
     }
   } else {
-    console.log('Current package is not publishable with scoped name, cause:', result);
+    console.log(
+      'Current package is not publishable with scoped name, cause:',
+      result,
+    );
   }
 }

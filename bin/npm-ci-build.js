@@ -1,15 +1,16 @@
-import {build} from '../src/build';
-import {release} from '../src/release';
+import { build } from '../src/build';
+import { release } from '../src/release';
 
 const program = require('commander');
 
+// eslint-disable-next-line
 program.version(require('../../package').version)
   .usage('[build-type]')
   .parse(process.argv);
 
 const buildType = program.args[0];
 
-(async function () {
+(async function() {
   if (buildType) {
     await build(buildType);
   } else {

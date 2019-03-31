@@ -1,6 +1,8 @@
-import {execCommand} from '../src/utils';
+import { execCommand } from '../src/utils';
+
 const program = require('commander');
 
+// eslint-disable-next-line
 program.version(require('../../package').version)
   .usage('[script]')
   .parse(process.argv);

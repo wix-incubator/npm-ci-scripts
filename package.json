@@ -27,7 +27,7 @@
     "babel-plugin-transform-runtime": "~6.23.0",
     "chai": "~4.1.0",
     "husky": "~0.14.0",
-    "yoshi": "^2.1.4"
+    "yoshi": "^4.1.0"
   },
   "dependencies": {
     "aws-sdk": "^2.424.0",
@@ -42,14 +42,9 @@
     "tempy": "^0.2.1"
   },
   "babel": {
-    "plugins": [
-      "transform-runtime"
-    ],
-    "presets": [
-      "wix"
-    ]
+    "presets": ["yoshi"]
   },
   "eslintConfig": {
-    "extends": "wix/esnext"
+    "extends": "yoshi-base"
   }
 }

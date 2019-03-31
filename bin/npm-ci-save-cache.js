@@ -1,3 +1,3 @@
-import {saveCache} from '../src/cache';
+import { saveCache } from '../src/cache';
 
 saveCache();

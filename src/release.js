@@ -1,5 +1,5 @@
-import {execCommand, readJsonFile} from './utils';
-import {get} from 'lodash';
+import { execCommand, readJsonFile } from './utils';
+import { get } from 'lodash';
 
 const pkg = readJsonFile('package.json');
 

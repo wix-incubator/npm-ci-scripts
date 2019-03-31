@@ -1,3 +1,3 @@
-import {extractCache} from '../src/cache';
+import { extractCache } from '../src/cache';
 
 extractCache();

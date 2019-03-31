@@ -1,20 +1,23 @@
-import {readFileSync, createReadStream, existsSync} from 'fs';
+import { readFileSync, createReadStream, existsSync } from 'fs';
 import tar from 'tar';
-import {S3} from 'aws-sdk';
-import {sync as globbySync} from 'globby';
+import { S3 } from 'aws-sdk';
+import { sync as globbySync } from 'globby';
 import tempy from 'tempy';
-import {getAWSCredentials, getCurrentProjectUniqueIdentifier} from './utils';
+import { getAWSCredentials, getCurrentProjectUniqueIdentifier } from './utils';
 
-const cacheKey = `${getCurrentProjectUniqueIdentifier()}/${process.env.NPM_CI_CACHE_KEY || process.env.BRANCH}`;
+const cacheKey = `${getCurrentProjectUniqueIdentifier()}/${process.env
+  .NPM_CI_CACHE_KEY || process.env.BRANCH}`;
 
 const s3Client = new S3({
-  credentials: getAWSCredentials()
+  credentials: getAWSCredentials(),
 });
 
 function getCICacheBucket(ciConfig) {
   const ciConfigBucketName = ciConfig.cache && ciConfig.cache.bucket;
 
-  return process.env.NPM_CI_CACHE_BUCKET || ciConfigBucketName || `wix-cache-ci`;
+  return (
+    process.env.NPM_CI_CACHE_BUCKET || ciConfigBucketName || `wix-cache-ci`
+  );
 }
 
 export function extractCache() {
@@ -28,10 +31,12 @@ export function extractCache() {
   console.log(`Starting to download and extract cache with key ${cacheKey}...`);
 
   return new Promise((resolve, reject) => {
-    s3Client.getObject({
-      Bucket: getCICacheBucket(ciConfig),
-      Key: cacheKey
-    }).createReadStream()
+    s3Client
+      .getObject({
+        Bucket: getCICacheBucket(ciConfig),
+        Key: cacheKey,
+      })
+      .createReadStream()
       .on('error', err => reject(err))
       .pipe(tar.extract({}))
       .on('error', err => reject(err))
@@ -58,35 +63,41 @@ export async function saveCache() {
 
     const pathsToCache = globbySync(ciConfig.cache.paths, {
       onlyFiles: false,
-      expandDirectories: false
+      expandDirectories: false,
     });
 
     console.log('Expanded the globs to the following paths to cache:');
     pathsToCache.forEach(console.log);
 
-    const tempFile = tempy.file({extension: 'tar.gz'});
+    const tempFile = tempy.file({ extension: 'tar.gz' });
 
     console.log(`Creating tar.gz of cache paths at ${tempFile}...`);
-    await tar.create({
-      gzip: true,
-      file: tempFile
-    }, pathsToCache);
+    await tar.create(
+      {
+        gzip: true,
+        file: tempFile,
+      },
+      pathsToCache,
+    );
     console.log('Cache file created.');
 
     console.log(`Uploading cache to S3 under key ${cacheKey}...`);
     return new Promise((resolve, reject) => {
-      s3Client.upload({
-        Body: createReadStream(tempFile),
-        Bucket: getCICacheBucket(ciConfig),
-        Key: cacheKey
-      }, err => {
-        if (err) {
-          reject(err);
-        } else {
-          console.log(`Cache file uploaded successfully`);
-          resolve();
-        }
-      });
+      s3Client.upload(
+        {
+          Body: createReadStream(tempFile),
+          Bucket: getCICacheBucket(ciConfig),
+          Key: cacheKey,
+        },
+        err => {
+          if (err) {
+            reject(err);
+          } else {
+            console.log(`Cache file uploaded successfully`);
+            resolve();
+          }
+        },
+      );
     });
   }
 }
