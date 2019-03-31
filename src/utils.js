@@ -234,5 +234,5 @@ export function getHashForCWD() {
 export function getAWSCredentials() {
   return process.env.NPM_CI_AWS_ACCESS_KEY ?
     new Credentials(process.env.NPM_CI_AWS_ACCESS_KEY, process.env.NPM_CI_AWS_SECRET_ACCESS_KEY) :
-    new SharedIniFileCredentials({profile: process.env.NPM_CI_AWS_CREDENTIALS_PROFILE});
+    new SharedIniFileCredentials({profile: process.env.NPM_CI_AWS_CREDENTIALS_PROFILE || 'cache-aws'});
 }
