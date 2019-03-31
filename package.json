@@ -30,6 +30,7 @@
     "yoshi": "^4.1.0"
   },
   "dependencies": {
+    "@babel/runtime": "^7.4.2",
     "aws-sdk": "^2.424.0",
     "babel-runtime": "~6.25.0",
     "chalk": "^2.4.1",
@@ -40,9 +41,6 @@
     "semver": "^5.5.0",
     "tar": "^4.4.8",
     "tempy": "^0.2.1"
-  },
-  "babel": {
-    "presets": ["yoshi"]
   },
   "eslintConfig": {
     "extends": "yoshi-base"
