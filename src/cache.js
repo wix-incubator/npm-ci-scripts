@@ -6,7 +6,7 @@ import tempy from 'tempy';
 import { getAWSCredentials, getCurrentProjectUniqueIdentifier } from './utils';
 
 const cacheKey = `${getCurrentProjectUniqueIdentifier()}/${process.env
-  .NPM_CI_CACHE_KEY || process.env.BRANCH}`;
+  .NPM_CI_CACHE_KEY || process.env.BRANCH || 'master'}`;
 
 const s3Client = new S3({
   credentials: getAWSCredentials(),
