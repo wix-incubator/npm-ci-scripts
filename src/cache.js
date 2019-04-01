@@ -5,9 +5,6 @@ import { sync as globbySync } from 'globby';
 import tempy from 'tempy';
 import { getAWSCredentials, getCurrentProjectUniqueIdentifier } from './utils';
 
-const cacheKey = `${getCurrentProjectUniqueIdentifier()}/${process.env
-  .NPM_CI_CACHE_KEY || process.env.BRANCH || 'master'}`;
-
 const s3Client = new S3({
   credentials: getAWSCredentials(),
 });
@@ -20,9 +17,25 @@ function getCICacheBucket(ciConfig) {
   );
 }
 
+function getCacheKey() {
+  return `${getCurrentProjectUniqueIdentifier()}/${process.env
+    .NPM_CI_CACHE_KEY ||
+    process.env.BRANCH ||
+    'master'}`;
+}
+
 export function extractCache() {
   if (!existsSync('.ci_config')) {
     console.log('No .ci_config file found. Skipping cache extraction.');
+    return;
+  }
+
+  let cacheKey;
+  try {
+    cacheKey = getCacheKey();
+  } catch (err) {
+    console.log('Failed to get cache key, will skip cache.');
+    console.log(err);
     return;
   }
 
@@ -50,6 +63,15 @@ export function extractCache() {
 export async function saveCache() {
   if (!existsSync('.ci_config')) {
     console.log('No .ci_config file found. Skipping cache creation.');
+    return;
+  }
+
+  let cacheKey;
+  try {
+    cacheKey = getCacheKey();
+  } catch (err) {
+    console.log('Failed to get cache key, will skip cache.');
+    console.log(err);
     return;
   }
 

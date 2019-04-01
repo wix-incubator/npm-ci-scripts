@@ -5,6 +5,7 @@ import tar from 'tar';
 import { createHash } from 'crypto';
 import { resolve as pathResolve } from 'path';
 import { Credentials, SharedIniFileCredentials } from 'aws-sdk';
+import { XmlDocument } from 'xmldoc';
 
 export function logBlockOpen(log) {
   console.log("##teamcity[blockOpened name='" + log + "']");
@@ -243,7 +244,19 @@ export function execCommandAsync(cmd, log, retries, retryCmd) {
 }
 
 export function getCurrentProjectUniqueIdentifier() {
-  return process.env.ARTIFACT_ID;
+  if (process.env.ARTIFACT_ID) {
+    return process.env.ARTIFACT_ID;
+  } else if (fileExists('pom.xml')) {
+    const artifactId = new XmlDocument(readFileSync('pom.xml')).valueWithPath(
+      'artifactId',
+    );
+
+    return artifactId;
+  } else {
+    throw new Error(
+      'Failed to get a unique identifier for project! no ARTIFACT_ID env var, and no pom.xml',
+    );
+  }
 }
 
 export function getHashForCWD() {

@@ -8,7 +8,16 @@ const s3Client = new S3({
 const CI_RESULTS_BUCKET = process.env.NPM_CI_RESULTS_BUCKET || 'wix-ci-results';
 
 export async function checkRunResult(hash, command) {
-  const buildHistoryKey = `${getCurrentProjectUniqueIdentifier()}/${hash}/${command}`;
+  let buildHistoryKey;
+  try {
+    buildHistoryKey = `${getCurrentProjectUniqueIdentifier()}/${hash}/${command}`;
+  } catch (err) {
+    console.log(err);
+    console.log(
+      'Failed to build history key, assuming run result as a failure.',
+    );
+    return false;
+  }
 
   let didPass;
 
@@ -29,7 +38,14 @@ export async function checkRunResult(hash, command) {
 }
 
 export async function saveSuccessfulRun(hash, command) {
-  const buildHistoryKey = `${getCurrentProjectUniqueIdentifier()}/${hash}/${command}`;
+  let buildHistoryKey;
+  try {
+    buildHistoryKey = `${getCurrentProjectUniqueIdentifier()}/${hash}/${command}`;
+  } catch (err) {
+    console.log(err);
+    console.log('Failed to build history key, build result will not be saved.');
+    return;
+  }
 
   let didSave;
 
