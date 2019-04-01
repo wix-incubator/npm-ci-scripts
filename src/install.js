@@ -31,7 +31,7 @@ export async function install() {
     } else {
       await npmInstallExec('npm install');
     }
-  } else if (fileExists('.ci_config') && readJsonFile('.ci_config').cache) {
+  } else if (fileExists('.ci_config') && readJsonFile('.ci_config').cache && fileExists("node_modules")) {
     await npmInstallExec('npm update --no-save --depth 9999');
   } else {
     await npmInstallExec('npm install --no-package-lock');
