@@ -1,7 +1,6 @@
 import { readFileSync, createReadStream, existsSync } from 'fs';
 import tar from 'tar';
 import { S3 } from 'aws-sdk';
-import { sync as globbySync } from 'globby';
 import tempy from 'tempy';
 import { getAWSCredentials, getCurrentProjectUniqueIdentifier } from './utils';
 
@@ -83,7 +82,9 @@ export async function saveCache() {
     console.log('Found cache config for the following path globs:');
     ciConfig.cache.paths.forEach(console.log);
 
-    const pathsToCache = globbySync(ciConfig.cache.paths, {
+    // requiring globby here and not importing because globby doesn't support
+    // node <= 5 and at the time of writing these lines, there are projects that need that support
+    const pathsToCache = require('globby').sync(ciConfig.cache.paths, {
       onlyFiles: false,
       expandDirectories: false,
     });
