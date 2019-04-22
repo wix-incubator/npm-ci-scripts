@@ -14,7 +14,9 @@ export async function build(buildType) {
     console.log(
       'An error occured while trying to extract cache. Build will continue without cache.',
     );
-    console.log(err);
+    if (process.env.CI_VERBOSE) {
+      console.log(err);
+    }
   }
 
   await install();
@@ -32,6 +34,8 @@ export async function build(buildType) {
     console.log(
       'An error occured while trying to save cache. Cache will not be updated.',
     );
-    console.log(err);
+    if (process.env.CI_VERBOSE) {
+      console.log(err);
+    }
   }
 }
