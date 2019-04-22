@@ -23,7 +23,7 @@ function getCacheKey() {
     'master'}`;
 }
 
-export function extractCache() {
+export async function extractCache() {
   if (!existsSync('.ci_config')) {
     console.log('No .ci_config file found. Skipping cache extraction.');
     return;
