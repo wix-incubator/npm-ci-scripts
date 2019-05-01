@@ -2,6 +2,7 @@ import { execCommand } from './utils';
 import { setApplitoolsId } from './applitoolsScripts';
 import { install } from './install';
 import { extractCache, saveCache } from './cache';
+import { reportOperationStarted, reportOperationEnded } from './bi';
 
 export async function build(buildType) {
   if (process.env.APPLITOOLS_GITHUB_FT) {
@@ -20,13 +21,18 @@ export async function build(buildType) {
   }
 
   await install();
+
+  reportOperationStarted('BUILD');
   execCommand('npm run build --if-present');
+  reportOperationEnded('BUILD');
 
   if (process.env.agentType === 'pullrequest') {
     execCommand('npm run pr-postbuild --if-present');
   }
 
+  reportOperationStarted(buildType);
   execCommand(`npm run ${buildType}`);
+  reportOperationEnded(buildType);
 
   try {
     await saveCache();

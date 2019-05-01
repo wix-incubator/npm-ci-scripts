@@ -3,6 +3,7 @@ import tar from 'tar';
 import { S3 } from 'aws-sdk';
 import tempy from 'tempy';
 import { getAWSCredentials, getCurrentProjectUniqueIdentifier } from './utils';
+import { reportOperationStarted, reportOperationEnded } from './bi';
 
 const s3Client = new S3({
   credentials: getAWSCredentials(),
@@ -38,11 +39,13 @@ export async function extractCache() {
     return;
   }
 
+  reportOperationStarted('CACHE_EXTRACTION');
+
   const ciConfig = JSON.parse(readFileSync('.ci_config', 'utf8'));
 
   console.log(`Starting to download and extract cache with key ${cacheKey}...`);
 
-  return new Promise((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     s3Client
       .getObject({
         Bucket: getCICacheBucket(ciConfig),
@@ -57,6 +60,8 @@ export async function extractCache() {
         resolve();
       });
   });
+
+  reportOperationEnded('CACHE_EXTRACTION');
 }
 
 export async function saveCache() {
@@ -79,6 +84,8 @@ export async function saveCache() {
   if (!ciConfig.cache) {
     console.log('No cache config in .ci_config. Skipping cache creation.');
   } else {
+    reportOperationStarted('CACHE_SAVE');
+
     console.log('Found cache config for the following path globs:');
     ciConfig.cache.paths.forEach(console.log);
 
@@ -105,7 +112,7 @@ export async function saveCache() {
     console.log('Cache file created.');
 
     console.log(`Uploading cache to S3 under key ${cacheKey}...`);
-    return new Promise((resolve, reject) => {
+    await new Promise((resolve, reject) => {
       s3Client.upload(
         {
           Body: createReadStream(tempFile),
@@ -122,5 +129,7 @@ export async function saveCache() {
         },
       );
     });
+
+    reportOperationEnded('CACHE_SAVE');
   }
 }
