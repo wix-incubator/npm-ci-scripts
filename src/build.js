@@ -22,9 +22,9 @@ export async function build(buildType) {
 
   await install();
 
-  reportOperationStarted('BUILD');
+  reportOperationStarted('NPM_BUILD');
   execCommand('npm run build --if-present');
-  reportOperationEnded('BUILD');
+  reportOperationEnded('NPM_BUILD');
 
   if (process.env.agentType === 'pullrequest') {
     execCommand('npm run pr-postbuild --if-present');
