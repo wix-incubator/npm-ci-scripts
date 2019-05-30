@@ -278,10 +278,8 @@ export function execCommandAsyncNoFail(cmd) {
             );
           }
 
-          error.stdio = {
-            stderr,
-            stdout,
-          };
+          error.stderr = stderr;
+          error.stdout = stdout;
 
           return reject(error);
         }
