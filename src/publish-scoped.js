@@ -2,14 +2,14 @@ import { publish } from './publish';
 import { execSync } from 'child_process';
 import { writeJsonFile, readJsonFile, fileExists } from './utils';
 
-function publishToRegistry(name, to) {
+function publishToRegistry(name, to, publishType) {
   const pkg = readJsonFile('package.json');
   pkg.name = name;
   pkg.publishConfig.registry = to;
   writeJsonFile('package.json', pkg);
   updateLockFiles(name);
   console.log('Publishing', pkg.name, 'to', to);
-  return publish('--ignore-scripts');
+  return publish('--ignore-scripts', publishType);
 }
 
 function validate(pkg) {
@@ -99,7 +99,10 @@ function grantPermissions(name) {
   });
 }
 
-export async function publishScoped() {
+/**
+ * @param {import("./publish").PublishType} [publishType]
+ */
+export async function publishScoped(publishType) {
   const pkg = readJsonFile('package.json');
   const restore = (bkp => () => {
     updateLockFiles(bkp.name);
@@ -112,19 +115,39 @@ export async function publishScoped() {
       if (isScoped(pkg.name)) {
         //publish to second registry since main publish already published to the first
         if (isWixRegistry(pkg.publishConfig.registry)) {
-          await publishToRegistry(pkg.name, 'https://registry.npmjs.org/');
+          await publishToRegistry(
+            pkg.name,
+            'https://registry.npmjs.org/',
+            publishType,
+          );
         } else {
-          await publishToRegistry(pkg.name, 'http://npm.dev.wixpress.com/');
+          await publishToRegistry(
+            pkg.name,
+            'http://npm.dev.wixpress.com/',
+            publishType,
+          );
         }
         const unscopedName = pkg.name.replace('@wix/', '');
         if (pkg.publishUnscoped !== false && verifyWixPackage(unscopedName)) {
-          await publishToRegistry(unscopedName, 'http://npm.dev.wixpress.com/');
+          await publishToRegistry(
+            unscopedName,
+            'http://npm.dev.wixpress.com/',
+            publishType,
+          );
         }
         grantPermissions(pkg.name);
       } else {
         const scopedName = `@wix/${pkg.name}`;
-        await publishToRegistry(scopedName, 'https://registry.npmjs.org/');
-        await publishToRegistry(scopedName, 'http://npm.dev.wixpress.com/');
+        await publishToRegistry(
+          scopedName,
+          'https://registry.npmjs.org/',
+          publishType,
+        );
+        await publishToRegistry(
+          scopedName,
+          'http://npm.dev.wixpress.com/',
+          publishType,
+        );
         grantPermissions(scopedName);
       }
       restore();
