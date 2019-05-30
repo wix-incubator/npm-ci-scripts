@@ -59,7 +59,7 @@ export function readJsonFile(name) {
   return JSON.parse(readFileSync(name, 'utf8'));
 }
 
-function sendMessageToSlack(msg) {
+export function sendMessageToSlack(msg) {
   if (!process.env.NPM_CI_SLACK_TOKEN) {
     return Promise.reject(
       new Error(
