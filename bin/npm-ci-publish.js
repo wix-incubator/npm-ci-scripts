@@ -10,6 +10,15 @@ import {
 import { writeFileSync, unlinkSync } from 'fs';
 import { execSync } from 'child_process';
 
+const program = require('commander');
+
+// eslint-disable-next-line
+program.version(require('../../package').version)
+  .usage('[publish-type]')
+  .parse(process.argv);
+
+const requestedPublishType = program.args[0];
+
 function latest(registry) {
   try {
     const result = JSON.parse(
@@ -24,14 +33,17 @@ function latest(registry) {
   }
 }
 
-async function runPublish() {
+/**
+ * @param {import("../src/publish").PublishType} [publishType] The type of publish to perform
+ */
+async function runPublish(publishType) {
   logBlockOpen('npm publish');
-  await publish();
+  await publish(undefined, publishType);
   logBlockClose('npm publish');
 
   if (process.env.PUBLISH_SCOPED) {
     logBlockOpen('npm publish to wix scope');
-    await publishScoped();
+    await publishScoped(publishType);
     logBlockClose('npm publish to wix scope');
   }
 }
@@ -93,6 +105,6 @@ execCommandAsync('npm run release --if-present').then(({ stdio }) => {
       `##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`,
     );
   } else {
-    runPublish();
+    runPublish(requestedPublishType);
   }
 });
