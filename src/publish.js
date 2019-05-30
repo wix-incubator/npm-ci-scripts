@@ -91,7 +91,7 @@ async function execPublish(info, version, flags, tagOverride) {
     ) {
       console.log('Ohh Ohh! Registry says we cant re-publish!');
       sendMessageToSlack(
-        `FAILED: ${publishCommand} for ${get('info', 'name', 'unknown')}`,
+        `FAILED: ${publishCommand} for ${get(info, 'name', 'unknown')}`,
       );
       const pkg = readJsonFile('package.json');
       pkg.version = semver.inc(pkg.version, 'patch');
@@ -101,7 +101,7 @@ async function execPublish(info, version, flags, tagOverride) {
         await execCommandAsyncNoFail(publishCommand);
         sendMessageToSlack(
           `SUCCESS: ${publishCommand} for ${get(
-            'info',
+            info,
             'name',
             'unknown',
           )} with ${pkg.version}`,
@@ -109,11 +109,7 @@ async function execPublish(info, version, flags, tagOverride) {
       } catch (ex) {
         console.log('didnt work', ex);
         sendMessageToSlack(
-          `RETRY FAILED: ${publishCommand} for ${get(
-            'info',
-            'name',
-            'unknown',
-          )}`,
+          `RETRY FAILED: ${publishCommand} for ${get(info, 'name', 'unknown')}`,
         );
         process.exit(1);
       }
