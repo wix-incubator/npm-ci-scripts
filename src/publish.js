@@ -1,4 +1,10 @@
-import { readJsonFile, execCommandAsync, writeJsonFile } from './utils';
+import {
+  readJsonFile,
+  execCommandAsync,
+  execCommandAsyncNoFail,
+  sendMessageToSlack,
+  writeJsonFile,
+} from './utils';
 import { execSync } from 'child_process';
 import chalk from 'chalk';
 import semver from 'semver';
@@ -71,7 +77,48 @@ async function execPublish(info, version, flags, tagOverride) {
   console.log(
     chalk.magenta(`Running: "${publishCommand}" for ${info.name}@${version}`),
   );
-  return execCommandAsync(publishCommand);
+
+  try {
+    await execCommandAsyncNoFail(publishCommand);
+  } catch (ex) {
+    if (
+      ex.stderr
+        .toString()
+        .indexOf('forbidden cannot modify pre-existing version') > -1 ||
+      ex.stdout
+        .toString()
+        .indexOf('forbidden cannot modify pre-existing version') > -1
+    ) {
+      console.log('Ohh Ohh! Registry says we cant re-publish!');
+      sendMessageToSlack(
+        `FAILED: ${publishCommand} for ${get('info', 'name', 'unknown')}`,
+      );
+      const pkg = readJsonFile('package.json');
+      pkg.version = semver.inc(pkg.version, 'patch');
+      console.log('Retrying with', pkg.version);
+      writeJsonFile('package.json', pkg);
+      try {
+        await execCommandAsyncNoFail(publishCommand);
+        sendMessageToSlack(
+          `SUCCESS: ${publishCommand} for ${get(
+            'info',
+            'name',
+            'unknown',
+          )} with ${pkg.version}`,
+        );
+      } catch (ex) {
+        console.log('didnt work', ex);
+        sendMessageToSlack(
+          `RETRY FAILED: ${publishCommand} for ${get(
+            'info',
+            'name',
+            'unknown',
+          )}`,
+        );
+        process.exit(1);
+      }
+    }
+  }
 }
 
 /**
