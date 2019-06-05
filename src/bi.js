@@ -9,7 +9,15 @@ function createReportFunction(suffix) {
     try {
       spawnSync(
         biReporterScript,
-        [`${operation}_${suffix}`, process.env.BUILD_ID],
+        [
+          `${operation}_${suffix}`,
+          process.env.BUILD_ID,
+          'null',
+          'null',
+          'null',
+          'null',
+          process.cwd(),
+        ],
         process.env.CI_VERBOSE
           ? {
               stdio: 'inherit',
