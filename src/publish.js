@@ -71,6 +71,13 @@ function getUnverifiedVersion(version) {
   return `${version}-unverified`;
 }
 
+function stringHasForbiddenCantPublish(str) {
+  return (
+    str.indexOf('forbidden cannot modify pre-existing version') || // artifactory error
+    str.indexOf('cannot publish over the previously published versions') // npmjs error
+  );
+}
+
 async function execPublish(info, version, flags, tagOverride) {
   const publishCommand = `npm publish --tag=${tagOverride ||
     getTag(info, version)} ${flags}`.trim();
@@ -82,12 +89,8 @@ async function execPublish(info, version, flags, tagOverride) {
     await execCommandAsyncNoFail(publishCommand);
   } catch (ex) {
     if (
-      ex.stderr
-        .toString()
-        .indexOf('forbidden cannot modify pre-existing version') > -1 ||
-      ex.stdout
-        .toString()
-        .indexOf('forbidden cannot modify pre-existing version') > -1
+      stringHasForbiddenCantPublish(ex.stderr.toString()) ||
+      stringHasForbiddenCantPublish(ex.stdout.toString())
     ) {
       console.log('Ohh Ohh! Registry says we cant re-publish!');
       sendMessageToSlack(
