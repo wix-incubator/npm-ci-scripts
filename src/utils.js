@@ -59,7 +59,7 @@ export function readJsonFile(name) {
   return JSON.parse(readFileSync(name, 'utf8'));
 }
 
-function sendMessageToSlack(msg) {
+export function sendMessageToSlack(msg) {
   if (!process.env.NPM_CI_SLACK_TOKEN) {
     return Promise.reject(
       new Error(
@@ -224,6 +224,63 @@ export function execCommandAsync(cmd, log, retries, retryCmd) {
           }
 
           process.exit(error.code || 1);
+          return reject(error);
+        }
+
+        resolve({
+          stdio: {
+            stderr,
+            stdout,
+          },
+        });
+      },
+    );
+
+    console.log('running:', cmd);
+
+    childProcess.stderr.pipe(process.stderr);
+    childProcess.stdout.pipe(process.stdout);
+  });
+}
+
+export function execCommandAsyncNoFail(cmd) {
+  return new Promise((resolve, reject) => {
+    logBlockOpen(cmd);
+    const childProcess = exec(
+      cmd,
+      { stdio: 'pipe', maxBuffer: TEN_MEGABYTES },
+      async (error, stdout, stderr) => {
+        logBlockClose(cmd);
+        if (error) {
+          const npmLogPathRegex = /(\/.+\d{4}-\d{2}-\d{2}T\d{2}_\d{2}_\d{2}_\d{1,3}Z-debug\.log)/g;
+          const match = npmLogPathRegex.exec(stderr.toString());
+          if (match) {
+            const logPath = match[0];
+            console.log('NPM log path detected:', logPath);
+            const pathParts = logPath.split('/');
+            const filename = pathParts[pathParts.length - 1];
+            try {
+              await sendFileToSlack(
+                logPath,
+                `NPM log from ${process.env.HOSTNAME} building ${
+                  process.env.ARTIFACT_ID
+                } (${process.env.BUILD_VCS_NUMBER})`,
+                filename,
+              );
+              console.log('npm log sent to slack!');
+            } catch (sendToSlackError) {
+              console.log('Sending npm log to slack failed', sendToSlackError);
+            }
+          } else {
+            console.log(
+              `Error executing '${cmd}', no npm log detected.`,
+              error,
+            );
+          }
+
+          error.stderr = stderr;
+          error.stdout = stdout;
+
           return reject(error);
         }
 
