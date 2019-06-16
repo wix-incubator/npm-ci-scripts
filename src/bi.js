@@ -15,7 +15,7 @@ function createReportFunction(suffix) {
           'null',
           'null',
           'null',
-          'null',
+          process.env.BUILD_NAME || 'unknown_build_name',
           process.cwd(),
         ],
         process.env.CI_VERBOSE
