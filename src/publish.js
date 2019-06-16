@@ -10,6 +10,7 @@ import chalk from 'chalk';
 import semver from 'semver';
 import { get } from 'lodash';
 import { republishPackage } from '@wix/npm-republish';
+import { reportOperationStarted, reportOperationEnded } from './bi';
 
 /**
  * @typedef {"temp-publish" | "re-publish"} PublishType
@@ -79,6 +80,7 @@ function stringHasForbiddenCantPublish(str) {
 }
 
 async function execPublish(info, version, flags, tagOverride) {
+  reportOperationStarted('NPM_PUBLISH');
   const publishCommand = `npm publish --tag=${tagOverride ||
     getTag(info, version)} ${flags}`.trim();
   console.log(
@@ -117,6 +119,7 @@ async function execPublish(info, version, flags, tagOverride) {
         process.exit(1);
       }
     }
+    reportOperationEnded('NPM_PUBLISH');
   }
 }
 
