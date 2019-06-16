@@ -30,9 +30,9 @@ export async function build(buildType) {
     execCommand('npm run pr-postbuild --if-present');
   }
 
-  reportOperationStarted(buildType);
+  reportOperationStarted(`test`);
   execCommand(`npm run ${buildType}`);
-  reportOperationEnded(buildType);
+  reportOperationEnded('test');
 
   try {
     await saveCache();
