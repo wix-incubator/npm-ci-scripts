@@ -79,7 +79,7 @@ function stringHasForbiddenCantPublish(str) {
   );
 }
 
-async function execPublish(info, version, flags, tagOverride) {
+async function execPublish(info, version, flags, tagOverride, noRetry = false) {
   reportOperationStarted('NPM_PUBLISH');
   const publishCommand = `npm publish --tag=${tagOverride ||
     getTag(info, version)} ${flags}`.trim();
@@ -91,8 +91,9 @@ async function execPublish(info, version, flags, tagOverride) {
     await execCommandAsyncNoFail(publishCommand);
   } catch (ex) {
     if (
+      (!noRetry,
       stringHasForbiddenCantPublish(ex.stderr.toString()) ||
-      stringHasForbiddenCantPublish(ex.stdout.toString())
+        stringHasForbiddenCantPublish(ex.stdout.toString()))
     ) {
       console.log('Ohh Ohh! Registry says we cant re-publish!');
       sendMessageToSlack(
@@ -143,7 +144,7 @@ export async function publish(flags = '', publishType, sourceMD5) {
 
   console.log(`Starting the release process for ${chalk.bold(name)}\n`);
 
-  if (!shouldPublishPackage(info, version)) {
+  if (!shouldPublishPackage(info, version) && publishType !== 'temp-publish') {
     console.log(
       chalk.blue(`${name}@${version} already exists on registry ${registry}`),
     );
@@ -181,6 +182,7 @@ export async function publish(flags = '', publishType, sourceMD5) {
         unverifiedVersion,
         flags + ` --registry=${registry} --@wix:registry=${registry}`,
         'unverified',
+        true,
       );
 
       console.log(
