@@ -18,7 +18,7 @@ program.version(require('../../package').version)
   .parse(process.argv);
 
 const requestedPublishType = program.args[0];
-const providedSourceMD5 = program.args[1];
+const providedSourceMD5 = process.env.SRC_MD5;
 
 function latest(registry) {
   try {
