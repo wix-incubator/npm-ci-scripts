@@ -18,6 +18,7 @@ program.version(require('../../package').version)
   .parse(process.argv);
 
 const requestedPublishType = program.args[0];
+const providedSourceMD5 = program.args[1];
 
 function latest(registry) {
   try {
@@ -35,15 +36,16 @@ function latest(registry) {
 
 /**
  * @param {import("../src/publish").PublishType} [publishType] The type of publish to perform
+ * @param {string} sourceMD5 The MD5 of the repository source
  */
-async function runPublish(publishType) {
+async function runPublish(publishType, sourceMD5) {
   logBlockOpen('npm publish');
-  await publish(undefined, publishType);
+  await publish(undefined, publishType, sourceMD5);
   logBlockClose('npm publish');
 
   if (process.env.PUBLISH_SCOPED) {
     logBlockOpen('npm publish to wix scope');
-    await publishScoped(publishType);
+    await publishScoped(publishType, sourceMD5);
     logBlockClose('npm publish to wix scope');
   }
 }
@@ -105,6 +107,6 @@ execCommandAsync('npm run release --if-present').then(({ stdio }) => {
       `##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; No publish']`,
     );
   } else {
-    runPublish(requestedPublishType);
+    runPublish(requestedPublishType, providedSourceMD5);
   }
 });
