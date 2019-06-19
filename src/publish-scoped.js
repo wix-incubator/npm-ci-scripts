@@ -2,14 +2,14 @@ import { publish } from './publish';
 import { execSync } from 'child_process';
 import { writeJsonFile, readJsonFile, fileExists } from './utils';
 
-function publishToRegistry(name, to, publishType) {
+function publishToRegistry(name, to, publishType, sourceMD5) {
   const pkg = readJsonFile('package.json');
   pkg.name = name;
   pkg.publishConfig.registry = to;
   writeJsonFile('package.json', pkg);
   updateLockFiles(name);
   console.log('Publishing', pkg.name, 'to', to);
-  return publish('--ignore-scripts', publishType);
+  return publish('--ignore-scripts', publishType, sourceMD5);
 }
 
 function validate(pkg) {
@@ -101,8 +101,9 @@ function grantPermissions(name) {
 
 /**
  * @param {import("./publish").PublishType} [publishType]
+ * @param {string} sourceMD5
  */
-export async function publishScoped(publishType) {
+export async function publishScoped(publishType, sourceMD5) {
   const pkg = readJsonFile('package.json');
   const restore = (bkp => () => {
     updateLockFiles(bkp.name);
@@ -119,12 +120,14 @@ export async function publishScoped(publishType) {
             pkg.name,
             'https://registry.npmjs.org/',
             publishType,
+            sourceMD5,
           );
         } else {
           await publishToRegistry(
             pkg.name,
             'http://npm.dev.wixpress.com/',
             publishType,
+            sourceMD5,
           );
         }
         const unscopedName = pkg.name.replace('@wix/', '');
@@ -133,6 +136,7 @@ export async function publishScoped(publishType) {
             unscopedName,
             'http://npm.dev.wixpress.com/',
             publishType,
+            sourceMD5,
           );
         }
         grantPermissions(pkg.name);
@@ -142,11 +146,13 @@ export async function publishScoped(publishType) {
           scopedName,
           'https://registry.npmjs.org/',
           publishType,
+          sourceMD5,
         );
         await publishToRegistry(
           scopedName,
           'http://npm.dev.wixpress.com/',
           publishType,
+          sourceMD5,
         );
         grantPermissions(scopedName);
       }

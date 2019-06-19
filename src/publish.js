@@ -68,8 +68,8 @@ function getTag(info, version) {
   }
 }
 
-function getUnverifiedVersion(version) {
-  return `${version}-unverified`;
+function getUnverifiedPublishVersion(sourceMD5) {
+  return `0.0.0-${sourceMD5}`;
 }
 
 function stringHasForbiddenCantPublish(str) {
@@ -133,8 +133,9 @@ async function execPublish(info, version, flags, tagOverride) {
  * 3. perform npm publish using the chosen tag.
  * @param {string} flags Flags to pass to npm publush
  * @param {PublishType} [publishType] The type of publish to perform
+ * @param {string} sourceMD5 The MD5 of the repository source
  */
-export async function publish(flags = '', publishType) {
+export async function publish(flags = '', publishType, sourceMD5) {
   const pkg = readJsonFile('package.json');
   const registry = get(pkg, 'publishConfig.registry', DEFAULT_REGISTRY);
   const info = getPackageInfo(registry);
@@ -169,7 +170,7 @@ export async function publish(flags = '', publishType) {
       // in case of a temp publish, we want to publish a prerelease version
       // that will later become the real version (using re-publish). For that
       // we also remove the postpublish step, becuase this is not the real publish
-      const unverifiedVersion = getUnverifiedVersion(version);
+      const unverifiedVersion = getUnverifiedPublishVersion(sourceMD5);
       const pkgJson = readJsonFile('package.json');
       pkgJson.scripts && delete pkgJson.scripts.postPublish;
       pkgJson.version = unverifiedVersion;
@@ -192,7 +193,7 @@ export async function publish(flags = '', publishType) {
       );
     } else if (publishType === 're-publish') {
       const pkgJson = readJsonFile('package.json');
-      const unverifiedVersion = getUnverifiedVersion(pkgJson.version);
+      const unverifiedVersion = getUnverifiedPublishVersion(sourceMD5);
 
       republishPackage(
         `${pkgJson.name}@${unverifiedVersion}`,
