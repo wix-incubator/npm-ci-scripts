@@ -177,11 +177,14 @@ export async function publish(flags = '', publishType, sourceMD5) {
       pkgJson.version = unverifiedVersion;
       writeJsonFile('package.json', pkgJson);
 
+      // sanitize the tag by removing all forwards slashes as they cause problems for npm
+      const publishTag = (process.env.BRANCH || 'snapshot').replace(/\//g, '-');
+
       await execPublish(
         info,
         unverifiedVersion,
         flags + ` --registry=${registry} --@wix:registry=${registry}`,
-        'unverified',
+        publishTag,
         true,
       );
 
