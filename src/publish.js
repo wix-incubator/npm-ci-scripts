@@ -68,7 +68,7 @@ function getTag(info, version) {
   }
 }
 
-function getUnverifiedPublishVersion(sourceMD5) {
+function getSnapshotPublishVersion(sourceMD5) {
   return `0.0.0-${sourceMD5}`;
 }
 
@@ -168,13 +168,11 @@ export async function publish(flags = '', publishType, sourceMD5) {
         `##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published: ${name}@${version}']`,
       );
     } else if (publishType === 'temp-publish') {
-      // in case of a temp publish, we want to publish a prerelease version
-      // that will later become the real version (using re-publish). For that
-      // we also remove the postpublish step, becuase this is not the real publish
-      const unverifiedVersion = getUnverifiedPublishVersion(sourceMD5);
+      // in case of a temp publish, we want to publish a snapshot version
+      // that will later become the real version (using re-publish).
+      const snapshotVersion = getSnapshotPublishVersion(sourceMD5);
       const pkgJson = readJsonFile('package.json');
-      pkgJson.scripts && delete pkgJson.scripts.postPublish;
-      pkgJson.version = unverifiedVersion;
+      pkgJson.version = snapshotVersion;
       writeJsonFile('package.json', pkgJson);
 
       // sanitize the tag by removing all forwards slashes as they cause problems for npm
@@ -182,7 +180,7 @@ export async function publish(flags = '', publishType, sourceMD5) {
 
       await execPublish(
         info,
-        unverifiedVersion,
+        snapshotVersion,
         flags + ` --registry=${registry} --@wix:registry=${registry}`,
         publishTag,
         true,
@@ -190,25 +188,21 @@ export async function publish(flags = '', publishType, sourceMD5) {
 
       console.log(
         chalk.green(
-          `\nPublish "${name}@${unverifiedVersion}" successfully to ${registry}`,
+          `\nPublish "${name}@${snapshotVersion}" successfully to ${registry}`,
         ),
       );
       console.log(
-        `##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published unverified version: ${name}@${unverifiedVersion}']`,
+        `##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published snapshot version: ${name}@${snapshotVersion}']`,
       );
     } else if (publishType === 're-publish') {
       const pkgJson = readJsonFile('package.json');
-      const unverifiedVersion = getUnverifiedPublishVersion(sourceMD5);
+      const snapshotVersion = getSnapshotPublishVersion(sourceMD5);
 
-      republishPackage(
-        `${pkgJson.name}@${unverifiedVersion}`,
-        pkgJson.version,
-        [
-          flags.split(' '),
-          `--registry=${registry}`,
-          `--@wix:registry=${registry}`,
-        ],
-      );
+      republishPackage(`${pkgJson.name}@${snapshotVersion}`, pkgJson.version, [
+        flags.split(' '),
+        `--registry=${registry}`,
+        `--@wix:registry=${registry}`,
+      ]);
 
       // Since we didn't run the postpublish script in the temp publish, we should run the postpublish
       // after a re-publish
