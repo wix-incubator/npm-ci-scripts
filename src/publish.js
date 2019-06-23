@@ -181,7 +181,10 @@ export async function publish(flags = '', publishType, sourceMD5) {
       writeJsonFile('package.json', pkgJson);
 
       // sanitize the tag by removing all forwards slashes as they cause problems for npm
-      const publishTag = (process.env.BRANCH || 'snapshot').replace(/\//g, '-');
+      const publishTag = (process.env.BRANCH
+        ? `branch-${process.env.BRANCH}`
+        : 'snapshot'
+      ).replace(/\//g, '-');
 
       try {
         await execPublish(
