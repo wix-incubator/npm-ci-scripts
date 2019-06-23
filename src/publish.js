@@ -91,11 +91,11 @@ async function execPublish(info, version, flags, tagOverride, noRetry = false) {
     await execCommandAsyncNoFail(publishCommand);
   } catch (ex) {
     if (
-      (!noRetry &&
-        stringHasForbiddenCantPublishBecauseVersionExists(
-          ex.stderr.toString(),
-        )) ||
-      stringHasForbiddenCantPublishBecauseVersionExists(ex.stdout.toString())
+      !noRetry &&
+      (stringHasForbiddenCantPublishBecauseVersionExists(
+        ex.stderr.toString(),
+      ) ||
+        stringHasForbiddenCantPublishBecauseVersionExists(ex.stdout.toString()))
     ) {
       console.log('Ohh Ohh! Registry says we cant re-publish!');
       sendMessageToSlack(
