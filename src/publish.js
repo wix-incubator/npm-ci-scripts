@@ -72,7 +72,7 @@ function getSnapshotPublishVersion(sourceMD5) {
   return `0.0.0-${sourceMD5}`;
 }
 
-function stringHasForbiddenCantPublish(str) {
+function stringHasForbiddenCantPublishBecauseVersionExists(str) {
   return (
     str.indexOf('forbidden cannot modify pre-existing version') || // artifactory error
     str.indexOf('cannot publish over the previously published versions') // npmjs error
@@ -91,9 +91,11 @@ async function execPublish(info, version, flags, tagOverride, noRetry = false) {
     await execCommandAsyncNoFail(publishCommand);
   } catch (ex) {
     if (
-      (!noRetry,
-      stringHasForbiddenCantPublish(ex.stderr.toString()) ||
-        stringHasForbiddenCantPublish(ex.stdout.toString()))
+      (!noRetry &&
+        stringHasForbiddenCantPublishBecauseVersionExists(
+          ex.stderr.toString(),
+        )) ||
+      stringHasForbiddenCantPublishBecauseVersionExists(ex.stdout.toString())
     ) {
       console.log('Ohh Ohh! Registry says we cant re-publish!');
       sendMessageToSlack(
@@ -119,9 +121,12 @@ async function execPublish(info, version, flags, tagOverride, noRetry = false) {
         );
         process.exit(1);
       }
+    } else {
+      throw ex;
     }
-    reportOperationEnded('NPM_PUBLISH');
   }
+
+  reportOperationEnded('NPM_PUBLISH');
 }
 
 /**
@@ -178,13 +183,30 @@ export async function publish(flags = '', publishType, sourceMD5) {
       // sanitize the tag by removing all forwards slashes as they cause problems for npm
       const publishTag = (process.env.BRANCH || 'snapshot').replace(/\//g, '-');
 
-      await execPublish(
-        info,
-        snapshotVersion,
-        flags + ` --registry=${registry} --@wix:registry=${registry}`,
-        publishTag,
-        true,
-      );
+      try {
+        await execPublish(
+          info,
+          snapshotVersion,
+          flags + ` --registry=${registry} --@wix:registry=${registry}`,
+          publishTag,
+          true,
+        );
+      } catch (err) {
+        if (
+          stringHasForbiddenCantPublishBecauseVersionExists(
+            err.stderr.toString(),
+          ) ||
+          stringHasForbiddenCantPublishBecauseVersionExists(
+            err.stdout.toString(),
+          )
+        ) {
+          console.log(
+            "We have already published a version with the source MD5, so it's OK that the package exists.",
+          );
+        } else {
+          throw err;
+        }
+      }
 
       console.log(
         chalk.green(
