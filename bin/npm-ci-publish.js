@@ -53,18 +53,6 @@ async function runPublish(publishType, sourceMD5) {
 let pkg = readJsonFile('package.json');
 const previousVersion = pkg.version;
 let shouldUnlink = false;
-if (pkg.name.indexOf('@wix/') === 0) {
-  pkg.publishConfig = { registry: 'https://registry.npmjs.org/' };
-  writeJsonFile('package.json', pkg);
-  if (
-    latest('http://npm.dev.wixpress.com/') !==
-    latest('https://registry.npmjs.org/')
-  ) {
-    console.log('forcing npmjs to trust latest from npmjs');
-    writeFileSync('.npmrc', '@wix:registry=https://registry.npmjs.org/'); //trust latest from npmjs
-    shouldUnlink = true;
-  }
-}
 
 execCommandAsync('npm run release --if-present').then(({ stdio }) => {
   if (shouldUnlink) {
