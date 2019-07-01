@@ -81,7 +81,7 @@ function stringHasForbiddenCantPublishBecauseVersionExists(str) {
 
 async function execPublish(info, version, flags, tagOverride, noRetry = false) {
   reportOperationStarted('NPM_PUBLISH');
-  const publishCommand = `npm publish --tag=${tagOverride ||
+  const publishCommand = `npm publish --verbose --tag=${tagOverride ||
     getTag(info, version)} ${flags}`.trim();
   console.log(
     chalk.magenta(`Running: "${publishCommand}" for ${info.name}@${version}`),
