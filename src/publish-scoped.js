@@ -84,17 +84,6 @@ function verifyWixPackage(packageName) {
   }
 }
 
-function grantPermissions(name) {
-  const options = '--@wix:registry=https://registry.npmjs.org/';
-  console.log('Granting access to "readonly" group to access', name);
-  execSync(`npm access grant read-write wix:publishers ${name} ${options}`, {
-    stdio: 'inherit',
-  });
-  execSync(`npm access grant read-only wix:developers ${name} ${options}`, {
-    stdio: 'inherit',
-  });
-}
-
 /**
  * @param {import("./publish").PublishType} [publishType]
  * @param {string} sourceMD5
@@ -119,7 +108,6 @@ export async function publishScoped(publishType, sourceMD5) {
             sourceMD5,
           );
         }
-        grantPermissions(pkg.name);
       } else {
         const scopedName = `@wix/${pkg.name}`;
         await publishToRegistry(
@@ -128,7 +116,6 @@ export async function publishScoped(publishType, sourceMD5) {
           publishType,
           sourceMD5,
         );
-        grantPermissions(scopedName);
       }
       restore();
     } catch (error) {
