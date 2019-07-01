@@ -349,3 +349,13 @@ export function getAWSCredentials() {
         profile: process.env.NPM_CI_AWS_CREDENTIALS_PROFILE || 'cache-aws',
       });
 }
+
+export function isWixScoped(name) {
+  return name.indexOf('@wix/') >= 0;
+}
+
+export function setRegistryForPublish(registry) {
+  const pkg = readJsonFile('package.json');
+  pkg.publishConfig = { registry: registry };
+  writeJsonFile('package.json', pkg);
+}

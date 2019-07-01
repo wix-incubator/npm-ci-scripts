@@ -4,6 +4,8 @@ import {
   execCommandAsyncNoFail,
   sendMessageToSlack,
   writeJsonFile,
+  isWixScoped,
+  setRegistryForPublish,
 } from './utils';
 import { execSync } from 'child_process';
 import chalk from 'chalk';
@@ -159,11 +161,10 @@ export async function publish(flags = '', publishType, sourceMD5) {
     );
   } else {
     if (!publishType) {
-      await execPublish(
-        info,
-        version,
-        flags + ` --registry=${registry} --@wix:registry=${registry}`,
-      );
+      if (isWixScoped(name)) {
+        setRegistryForPublish('http://npm.dev.wixpress.com');
+      }
+      await execPublish(info, version, flags);
       console.log(
         chalk.green(
           `\nPublish "${name}@${version}" successfully to ${registry}`,
