@@ -7,6 +7,9 @@ import { resolve as pathResolve } from 'path';
 import { Credentials, SharedIniFileCredentials } from 'aws-sdk';
 import { XmlDocument } from 'xmldoc';
 
+export const INTERNAL_REGISTRY = 'http://npm.dev.wixpress.com/';
+export const PUBLIC_REGISTRY = 'https://registry.npmjs.org/';
+
 export function logBlockOpen(log) {
   console.log("##teamcity[blockOpened name='" + log + "']");
 }
@@ -358,4 +361,17 @@ export function setRegistryForPublish(registry) {
   const pkg = readJsonFile('package.json');
   pkg.publishConfig = { registry: registry };
   writeJsonFile('package.json', pkg);
+}
+
+export function isPublicRegistry(registry) {
+  return registry.indexOf('registry.npmjs.org') >= 0;
+}
+
+export function grantPermissions(packageName) {
+  execSync(
+    `npm access grant read-write wix:publishers ${packageName} --registry=${PUBLIC_REGISTRY}`,
+    {
+      stdio: 'inherit',
+    },
+  );
 }
