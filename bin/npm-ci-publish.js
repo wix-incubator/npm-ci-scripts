@@ -7,8 +7,7 @@ import {
   readJsonFile,
   writeJsonFile,
 } from '../src/utils';
-import { writeFileSync, unlinkSync } from 'fs';
-import { execSync } from 'child_process';
+import { unlinkSync } from 'fs';
 
 const program = require('commander');
 
@@ -19,20 +18,6 @@ program.version(require('../../package').version)
 
 const requestedPublishType = program.args[0];
 const providedSourceMD5 = process.env.SRC_MD5;
-
-function latest(registry) {
-  try {
-    const result = JSON.parse(
-      execSync(
-        `npm show --json --registry=${registry} --@wix:registry=${registry}`,
-        { stdio: 'pipe' },
-      ).toString(),
-    );
-    return result['dist-tags'].latest;
-  } catch (error) {
-    return null;
-  }
-}
 
 /**
  * @param {import("../src/publish").PublishType} [publishType] The type of publish to perform
@@ -52,7 +37,7 @@ async function runPublish(publishType, sourceMD5) {
 
 let pkg = readJsonFile('package.json');
 const previousVersion = pkg.version;
-let shouldUnlink = false;
+const shouldUnlink = false;
 
 execCommandAsync('npm run release --if-present').then(({ stdio }) => {
   if (shouldUnlink) {

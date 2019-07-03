@@ -6,6 +6,9 @@ import {
   writeJsonFile,
   isWixScoped,
   setRegistryForPublish,
+  INTERNAL_REGISTRY,
+  isPublicRegistry,
+  grantPermissions,
 } from './utils';
 import { execSync } from 'child_process';
 import chalk from 'chalk';
@@ -18,7 +21,7 @@ import { reportOperationStarted, reportOperationEnded } from './bi';
  * @typedef {"temp-publish" | "re-publish"} PublishType
  */
 
-const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
+const DEFAULT_REGISTRY = INTERNAL_REGISTRY;
 const LATEST_TAG = 'latest';
 const NEXT_TAG = 'next';
 const OLD_TAG = 'old';
@@ -162,9 +165,15 @@ export async function publish(flags = '', publishType, sourceMD5) {
   } else {
     if (!publishType) {
       if (isWixScoped(name)) {
-        setRegistryForPublish('http://npm.dev.wixpress.com');
+        setRegistryForPublish(INTERNAL_REGISTRY);
+        await execPublish(info, version, flags);
+      } else {
+        await execPublish(info, version, flags);
+        if (isPublicRegistry(registry)) {
+          grantPermissions(name);
+        }
       }
-      await execPublish(info, version, flags);
+
       console.log(
         chalk.green(
           `\nPublish "${name}@${version}" successfully to ${registry}`,
@@ -188,13 +197,7 @@ export async function publish(flags = '', publishType, sourceMD5) {
       ).replace(/\//g, '-');
 
       try {
-        await execPublish(
-          info,
-          snapshotVersion,
-          flags + ` --registry=${registry} --@wix:registry=${registry}`,
-          publishTag,
-          true,
-        );
+        await execPublish(info, snapshotVersion, flags, publishTag, true);
       } catch (err) {
         if (
           stringHasForbiddenCantPublishBecauseVersionExists(
@@ -226,8 +229,6 @@ export async function publish(flags = '', publishType, sourceMD5) {
 
       republishPackage(`${pkgJson.name}@${snapshotVersion}`, pkgJson.version, [
         flags.split(' '),
-        `--registry=${registry}`,
-        `--@wix:registry=${registry}`,
       ]);
 
       // Since we didn't run the postpublish script in the temp publish, we should run the postpublish

@@ -1,6 +1,12 @@
 import { publish } from './publish';
 import { execSync } from 'child_process';
-import { writeJsonFile, readJsonFile, fileExists, isWixScoped } from './utils';
+import {
+  writeJsonFile,
+  readJsonFile,
+  fileExists,
+  isWixScoped,
+  INTERNAL_REGISTRY,
+} from './utils';
 
 function publishToRegistry(name, to, publishType, sourceMD5) {
   const pkg = readJsonFile('package.json');
@@ -67,7 +73,7 @@ function updateLockFiles(packageName) {
 function verifyWixPackage(packageName) {
   try {
     const result = execSync(
-      `npm view --registry=http://npm.dev.wixpress.com ${packageName} publishConfig.registry`,
+      `npm view --registry=${INTERNAL_REGISTRY} ${packageName} publishConfig.registry`,
       { stdio: 'pipe' },
     ).toString();
     return isWixRegistry(result);
@@ -103,7 +109,7 @@ export async function publishScoped(publishType, sourceMD5) {
         if (pkg.publishUnscoped !== false && verifyWixPackage(unscopedName)) {
           await publishToRegistry(
             unscopedName,
-            'http://npm.dev.wixpress.com/',
+            INTERNAL_REGISTRY,
             publishType,
             sourceMD5,
           );
@@ -112,7 +118,7 @@ export async function publishScoped(publishType, sourceMD5) {
         const scopedName = `@wix/${pkg.name}`;
         await publishToRegistry(
           scopedName,
-          'http://npm.dev.wixpress.com/',
+          INTERNAL_REGISTRY,
           publishType,
           sourceMD5,
         );
