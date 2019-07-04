@@ -368,6 +368,9 @@ export function isPublicRegistry(registry) {
 }
 
 export function grantPermissions(packageName) {
+  console.log(
+    `Granting read-write permissions to wix:publishers group on ${packageName}`,
+  );
   execSync(
     `npm access grant read-write wix:publishers ${packageName} --registry=${PUBLIC_REGISTRY}`,
     {
