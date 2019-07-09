@@ -34,6 +34,10 @@ export async function build(buildType) {
   execCommand(`npm run ${buildType}`);
   reportOperationEnded('test');
 
+  reportOperationStarted('check perfer configuration');
+  execCommand(`npx -p @wix/perfer-repo-status-cli verify`);
+  reportOperationEnded('check perfer configurtaion');
+
   try {
     await saveCache();
   } catch (err) {
