@@ -45,7 +45,7 @@ Promise.resolve()
       return execCommandAsync('npm run release --if-present');
     }
   })
-  .then(({ stdio }) => {
+  .then(releaseOutput => {
     if (shouldUnlink) {
       unlinkSync('.npmrc');
     }
@@ -64,18 +64,20 @@ Promise.resolve()
       writeJsonFile('package.json', pkg);
     }
 
-    // eslint-disable-next-line no-div-regex
-    const npmPublishRegex = /[\s\S]*?npm publish[\s\S]*?=== Tarball Details ===[\s\\n]+.*name:\s+([^\s]+)[\s\\n]*.*version:\s+([^\s]+)/gm;
-    const stdoutString = stdio.stdout.toString();
-    let stdOutMatch;
     let skipPublish = false;
-    while ((stdOutMatch = npmPublishRegex.exec(stdoutString))) {
-      // eslint-disable-line no-cond-assign
-      const [_, pkgName, pkgVersion] = stdOutMatch;
-      console.log(
-        `Seems like 'release' command published a package ${pkgName} ${pkgVersion}`,
-      );
-      skipPublish = true;
+    if (releaseOutput) {
+      // eslint-disable-next-line no-div-regex
+      const npmPublishRegex = /[\s\S]*?npm publish[\s\S]*?=== Tarball Details ===[\s\\n]+.*name:\s+([^\s]+)[\s\\n]*.*version:\s+([^\s]+)/gm;
+      const stdoutString = releaseOutput.stdio.stdout.toString();
+      let stdOutMatch;
+      while ((stdOutMatch = npmPublishRegex.exec(stdoutString))) {
+        // eslint-disable-line no-cond-assign
+        const [_, pkgName, pkgVersion] = stdOutMatch;
+        console.log(
+          `Seems like 'release' command published a package ${pkgName} ${pkgVersion}`,
+        );
+        skipPublish = true;
+      }
     }
 
     if (pkg.private || skipPublish) {
