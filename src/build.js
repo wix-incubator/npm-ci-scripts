@@ -34,7 +34,10 @@ export async function build(buildType) {
   execCommand(`npm run ${buildType}`);
   reportOperationEnded('test');
 
-  execCommand(`npx -p @wix/perfer-repo-status-cli verify`);
+  const repoStatusCLI = require.resolve(
+    '@wix/perfer-repo-status-cli/bundle/index',
+  );
+  execCommand(`${repoStatusCLI} verify`);
 
   try {
     await saveCache();
