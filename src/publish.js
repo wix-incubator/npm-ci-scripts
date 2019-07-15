@@ -227,9 +227,11 @@ export async function publish(flags = '', publishType, sourceMD5) {
       const pkgJson = readJsonFile('package.json');
       const snapshotVersion = getSnapshotPublishVersion(sourceMD5);
 
-      republishPackage(`${pkgJson.name}@${snapshotVersion}`, pkgJson.version, [
-        flags.split(' '),
-      ]);
+      await republishPackage(
+        `${pkgJson.name}@${snapshotVersion}`,
+        pkgJson.version,
+        [flags.split(' ')],
+      );
 
       // Since we didn't run the postpublish script in the temp publish, we should run the postpublish
       // after a re-publish
