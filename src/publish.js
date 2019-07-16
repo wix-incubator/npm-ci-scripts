@@ -233,6 +233,12 @@ export async function publish(flags = '', publishType, sourceMD5) {
         [flags.split(' ')],
       );
 
+      console.log(
+        `##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published version: ${name}@${
+          pkgJson.version
+        }']`,
+      );
+
       // Since we didn't run the postpublish script in the temp publish, we should run the postpublish
       // after a re-publish
       await execCommandAsync('npm run postpublish');
