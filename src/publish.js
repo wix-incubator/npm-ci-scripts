@@ -241,7 +241,7 @@ export async function publish(flags = '', publishType, sourceMD5) {
 
       // Since we didn't run the postpublish script in the temp publish, we should run the postpublish
       // after a re-publish
-      await execCommandAsync('npm run postpublish');
+      await execCommandAsync('npm run postpublish --if-present');
     } else {
       throw new Error(`Unknown publish type requested ${publishType}`);
     }
