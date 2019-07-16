@@ -230,7 +230,7 @@ export async function publish(flags = '', publishType, sourceMD5) {
       await republishPackage(
         `${pkgJson.name}@${snapshotVersion}`,
         pkgJson.version,
-        [flags.split(' ')],
+        flags.split(' '),
       );
 
       console.log(
