@@ -227,10 +227,25 @@ export async function publish(flags = '', publishType, sourceMD5) {
       const pkgJson = readJsonFile('package.json');
       const snapshotVersion = getSnapshotPublishVersion(sourceMD5);
 
+      let registryForRepublish;
+
+      if (isWixScoped(pkgJson.name)) {
+        registryForRepublish = INTERNAL_REGISTRY;
+      } else {
+        const registryFromPackage =
+          pkgJson.publishConfig && pkgJson.publishConfig.registry;
+        if (registryFromPackage) {
+          registryForRepublish = registryFromPackage;
+        } else {
+          registryForRepublish = INTERNAL_REGISTRY;
+        }
+      }
+
       await republishPackage(
         `${pkgJson.name}@${snapshotVersion}`,
         pkgJson.version,
         flags.split(' '),
+        registryForRepublish,
       );
 
       console.log(
