@@ -9,6 +9,7 @@ import {
   INTERNAL_REGISTRY,
   isPublicRegistry,
   grantPermissions,
+  PUBLIC_REGISTRY,
 } from './utils';
 import { execSync } from 'child_process';
 import chalk from 'chalk';
@@ -165,7 +166,11 @@ export async function publish(flags = '', publishType, sourceMD5) {
   } else {
     if (!publishType) {
       if (isWixScoped(name)) {
-        setRegistryForPublish(INTERNAL_REGISTRY);
+        if (pkg.publishConfig && pkg.publishConfig.access === 'public') {
+          setRegistryForPublish(PUBLIC_REGISTRY);
+        } else {
+          setRegistryForPublish(INTERNAL_REGISTRY);
+        }
         await execPublish(info, version, flags);
       } else {
         await execPublish(info, version, flags);
