@@ -12,7 +12,7 @@ program
   .command('custom', 'run custom npm command')
   .command(
     'hash-folder',
-    "print the calculated hash for the folder and it's contents",
+    'print the calculated hash for the folder and it's contents',
   )
   .command(
     'check-run-result',
