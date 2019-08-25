@@ -1,5 +1,6 @@
 {
   "name": "npm-ci-scripts",
+  "description": "npm-ci-scripts",
   "version": "3.0.0",
   "license": "UNLICENSED",
   "author": {
