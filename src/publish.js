@@ -80,8 +80,8 @@ function getSnapshotPublishVersion(sourceMD5) {
 
 function stringHasForbiddenCantPublishBecauseVersionExists(str) {
   return (
-    str.indexOf('forbidden cannot modify pre-existing version') || // artifactory error
-    str.indexOf('cannot publish over the previously published versions') // npmjs error
+    str.indexOf('forbidden cannot modify pre-existing version') > -1 || // artifactory error
+    str.indexOf('cannot publish over the previously published versions') > -1 // npmjs error
   );
 }
 
@@ -193,6 +193,10 @@ export async function publish(flags = '', publishType, sourceMD5) {
       const snapshotVersion = getSnapshotPublishVersion(sourceMD5);
       const pkgJson = readJsonFile('package.json');
       pkgJson.version = snapshotVersion;
+      // a temp-publish is always published to artifactory where it will later
+      // be re-published from
+      pkgJson.publishConfig = pkgJson.publishConfig || {};
+      pkgJson.publishConfig.registry = INTERNAL_REGISTRY;
       writeJsonFile('package.json', pkgJson);
 
       // sanitize the tag by removing all forwards slashes as they cause problems for npm
@@ -250,7 +254,7 @@ export async function publish(flags = '', publishType, sourceMD5) {
         `${pkgJson.name}@${snapshotVersion}`,
         pkgJson.version,
         flags.split(' '),
-        registryForRepublish,
+        { from: INTERNAL_REGISTRY, to: registryForRepublish },
       );
 
       console.log(
