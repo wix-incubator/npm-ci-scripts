@@ -251,12 +251,14 @@ export async function publish(flags = '', publishType, sourceMD5) {
         }
       }
 
-      await republishPackage(
-        `${pkgJson.name}@${snapshotVersion}`,
-        pkgJson.version,
-        flags.split(' '),
-        { from: INTERNAL_REGISTRY, to: registryForRepublish },
-      );
+      await runWithRetries(async () => {
+        await republishPackage(
+          `${pkgJson.name}@${snapshotVersion}`,
+          pkgJson.version,
+          flags.split(' '),
+          { from: INTERNAL_REGISTRY, to: registryForRepublish },
+        );
+      });
 
       console.log(
         `##teamcity[buildStatus status='SUCCESS' text='{build.status.text}; Published version: ${name}@${
@@ -269,6 +271,18 @@ export async function publish(flags = '', publishType, sourceMD5) {
       await execCommandAsync('npm run postpublish --if-present');
     } else {
       throw new Error(`Unknown publish type requested ${publishType}`);
+    }
+  }
+}
+
+async function runWithRetries(task, retries = 3) {
+  try {
+    return await task();
+  } catch (err) {
+    if (retries <= 0) {
+      throw err;
+    } else {
+      return runWithRetries(task, retries - 1);
     }
   }
 }
