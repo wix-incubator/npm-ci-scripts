@@ -195,8 +195,9 @@ export async function publish(flags = '', publishType, sourceMD5) {
       pkgJson.version = snapshotVersion;
       // a temp-publish is always published to artifactory where it will later
       // be re-published from
+      const targetRegistry = INTERNAL_REGISTRY;
       pkgJson.publishConfig = pkgJson.publishConfig || {};
-      pkgJson.publishConfig.registry = INTERNAL_REGISTRY;
+      pkgJson.publishConfig.registry = targetRegistry;
       writeJsonFile('package.json', pkgJson);
 
       // sanitize the tag by removing all forwards slashes as they cause problems for npm
@@ -226,7 +227,7 @@ export async function publish(flags = '', publishType, sourceMD5) {
 
       console.log(
         chalk.green(
-          `\nPublish "${name}@${snapshotVersion}" successfully to ${registry}`,
+          `\nPublish "${name}@${snapshotVersion}" successfully to ${targetRegistry}`,
         ),
       );
       console.log(
