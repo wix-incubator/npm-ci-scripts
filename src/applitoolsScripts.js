@@ -16,10 +16,12 @@ function getParentsHashArray() {
 
 function getPRHeadHash() {
   const parentsHashArr = getParentsHashArray();
+  console.log('getPRHeadHash:parentsHashArr=', parentsHashArr);
   const isPullRequest = parentsHashArr.length === 3;
   const parentHashIndex = isPullRequest
     ? PULL_REQUEST_PARENT_HASH_INDEX
     : HEAD_HASH_INDEX;
+  console.log('getPRHeadHash-parentsHashArr[parentHashIndex].trim():', parentsHashArr[parentHashIndex].trim());
   return parentsHashArr[parentHashIndex].trim();
 }
 
@@ -27,8 +29,10 @@ export function setApplitoolsId() {
   let batchId;
   try {
     batchId = getPRHeadHash();
+    console.log('batchId', batchId);
   } catch (e) {
     batchId = process.env.BUILD_VCS_NUMBER;
+    console.log('batchId', batchId);
   }
   process.env.APPLITOOLS_BATCH_ID = batchId;
 }
