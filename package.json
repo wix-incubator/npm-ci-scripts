@@ -5,7 +5,7 @@
   "license": "UNLICENSED",
   "author": {
     "name": "Shahar Talmi",
-    "email": "shahart@wix.com"
+    "email": "shahar@wix.com"
   },
   "bin": {
     "npm-ci": "dist/bin/npm-ci.js"
